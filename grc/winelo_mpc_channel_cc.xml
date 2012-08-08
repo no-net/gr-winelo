@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<block>
+  <name>mpc_channel_cc</name>
+  <key>winelo_mpc_channel_cc</key>
+  <category>WiNeLo</category>
+  <import>import winelo</import>
+  <make>winelo.mpc_channel_cc()</make>
+<param>
+	<name>Num Inputs</name>
+	<key>num_inputs</key>
+	<value>2</value>
+	<type>int</type>
+</param>
+<sink>
+	<name>in</name>
+	<type>complex</type>
+	<nports>$num_inputs</nports>
+</sink>
+<source>
+	<name>out</name>
+	<type>complex</type>
+</source>
+</block>

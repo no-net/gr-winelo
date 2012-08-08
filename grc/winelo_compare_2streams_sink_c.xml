@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<!--
+###################################################
+## Compare 2 input streams and print BER
+###################################################
+ -->
+<block>
+	<name>Compare 2 Streams Sink</name>
+	<key>winelo_compare</key>
+	<category>WiNeLo</category>
+	<import>from winelo.client import compare_2streams_sink_c</import>
+	<make>compare_2streams_sink_c()</make>
+        <param>
+                <name>Num Inputs</name>
+                <key>num_inputs</key>
+                <value>2</value>
+                <type>int</type>
+        </param>
+        <check>$num_inputs &gt;= 2</check>
+        <sink>
+                <name>in</name>
+                <type>complex</type>
+                <nports>$num_inputs</nports>
+        </sink>
+	<sink>
+		<name>in</name>
+		<type>complex</type>
+	</sink>
+</block>

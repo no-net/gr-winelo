@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<!--
+###################################################
+## Maximum Ratio Combiner
+###################################################
+ -->
+<block>
+	<name>MRC VCC</name>
+	<key>winelo_mrc_vcc</key>
+	<category>WiNeLo</category>
+	<import>from winelo.client import mrc_vcc</import>
+	<make>mrc_vcc($pilot_seq_len, $channel_coherence_len, $num_inputs)</make>
+	<param>
+		<name>Num Inputs</name>
+		<key>num_inputs</key>
+		<value>2</value>
+		<type>int</type>
+	</param>
+	<!--<param>
+		<name>Num Inputs</name>
+		<key>num_inputs</key>
+		<value>2</value>
+		<type>int</type>
+	</param>
+	<check>$num_inputs &gt;= 2</check>-->
+	<param>
+		<name>Pilot Sequence Length</name>
+		<key>pilot_seq_len</key>
+		<value>pilot_seq_len</value>
+		<type>int</type>
+	</param>
+	<param>
+		<name>Channel Coherence Length</name>
+		<key>channel_coherence_len</key>
+		<value>channel_coherence_len</value>
+		<type>int</type>
+	</param>
+	<sink>
+		<name>in</name>
+		<type>complex</type>
+		<vlen>$channel_coherence_len</vlen>
+		<nports>$num_inputs</nports>
+	</sink>
+	<source>
+		<name>out</name>
+		<type>complex</type>
+		<vlen>$channel_coherence_len - $pilot_seq_len</vlen>
+	</source>
+</block>

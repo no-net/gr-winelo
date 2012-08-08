@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!--
+###################################################
+## BPSK Demod, threshold at 0
+###################################################
+ -->
+<block>
+	<name>Count Samples CC</name>
+	<key>winelo_count_samples_cc</key>
+	<category>WiNeLo</category>
+	<import>from winelo.client import count_samples_cc</import>
+	<make>count_samples_cc()</make>
+	<sink>
+		<name>in</name>
+		<type>complex</type>
+	</sink>
+	<source>
+		<name>out</name>
+		<type>complex</type>
+	</source>
+</block>
