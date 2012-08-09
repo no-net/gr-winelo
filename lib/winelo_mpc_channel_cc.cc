@@ -24,6 +24,8 @@
 
 #include <gr_io_signature.h>
 #include <winelo_mpc_channel_cc.h>
+#include <volk/volk.h>
+#include <iostream>
 
 
 winelo_mpc_channel_cc_sptr
@@ -38,6 +40,9 @@ winelo_mpc_channel_cc::winelo_mpc_channel_cc ()
 		gr_make_io_signature (2, -1, sizeof (gr_complex)),
 		gr_make_io_signature (1, 1, sizeof (gr_complex)))
 {
+	set_history(9);
+	const int alignment_multiple = volk_get_alignment() / sizeof(gr_complex);
+	set_alignment(std::max(1,alignment_multiple));
 }
 
 
@@ -51,13 +56,37 @@ winelo_mpc_channel_cc::work (int noutput_items,
 			gr_vector_const_void_star &input_items,
 			gr_vector_void_star &output_items)
 {
-	const float *in0 = (const float *) input_items[0];
-	const float *in1 = (const float *) input_items[1];
-	float *out = (float *) output_items[0];
-
-	for (int i = 0; i < noutput_items; i++){
-		out[i] = in0[i] * in1[i];
+  	gr_complex *out = (gr_complex *) output_items[0];
+  	gr_complex *data = (gr_complex *) input_items[0];
+	memset(out,0,noutput_items*sizeof(gr_complex));
+  	int noi = noutput_items;
+  	
+	//delays of the various taps
+	int tau_d[] = {0,2,0};
+	gr_complex temp[noutput_items];
+	if(is_unaligned()) {
+		for(size_t i = 1; i < input_items.size(); i++)
+			volk_32fc_x2_multiply_32fc_u(temp, (gr_complex*)data+tau_d[i], ((gr_complex*)input_items[i]), noi);
+			for(int j = 0; j < noutput_items; j++)
+			{
+				out[j] += temp[j];
+			}
+		}
+	else {
+		for(size_t i = 1; i < input_items.size(); i++)
+		{
+			volk_32fc_x2_multiply_32fc_a(temp, (gr_complex*)data+tau_d[i], ((gr_complex*)input_items[i])+tau_d[i], noi);
+			for(int j = 0; j < noutput_items; j++)
+			{
+				//std::cout << "in:" << i << ":" << j << ":" << temp[j] << std::endl;
+				out[j] += temp[j];
+			}
+		}
 	}
+	/*for(int j = 0; j < noutput_items; j++)
+	{
+		std::cout << "out:" << j << ":" << out[j] << std::endl;
+	}*/
 
 	return noutput_items;
 }
