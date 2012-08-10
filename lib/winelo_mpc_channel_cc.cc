@@ -62,32 +62,20 @@ winelo_mpc_channel_cc::work (int noutput_items,
   	int noi = noutput_items;
   	
 	//delays of the various taps
-	int tau_d[] = {0,2,0};
+	int tau_d[] = {0,0,0};
 	gr_complex temp[noutput_items];
 	if(is_unaligned()) {
 		for(size_t i = 1; i < input_items.size(); i++)
-			volk_32fc_x2_multiply_32fc_u(temp, (gr_complex*)data+tau_d[i], ((gr_complex*)input_items[i]), noi);
-			for(int j = 0; j < noutput_items; j++)
-			{
-				out[j] += temp[j];
-			}
+			volk_32fc_x2_multiply_32fc_u(temp, (gr_complex*)data+tau_d[i], ((gr_complex*)input_items[i])+tau_d[i], noi);
+			volk_32f_x2_add_32f_a((float *)out, (float *)out, (float *)temp, 2*noi);
 		}
 	else {
 		for(size_t i = 1; i < input_items.size(); i++)
 		{
 			volk_32fc_x2_multiply_32fc_a(temp, (gr_complex*)data+tau_d[i], ((gr_complex*)input_items[i])+tau_d[i], noi);
-			for(int j = 0; j < noutput_items; j++)
-			{
-				//std::cout << "in:" << i << ":" << j << ":" << temp[j] << std::endl;
-				out[j] += temp[j];
-			}
+			volk_32f_x2_add_32f_a((float *)out, (float *)out, (float *)temp, 2*noi);
 		}
 	}
-	/*for(int j = 0; j < noutput_items; j++)
-	{
-		std::cout << "out:" << j << ":" << out[j] << std::endl;
-	}*/
-
 	return noutput_items;
 }
 

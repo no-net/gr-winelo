@@ -5,9 +5,9 @@ from gnuradio import gr
 import numpy
 import time
 
-class compare_2streams_sink_c(gr.sync_block):
+class compare_2streams_sink_c(gr.block):
     def __init__(self):
-        gr.sync_block.__init__(
+        gr.block.__init__(
             self,
             name = "Print complex samples sink",
             in_sig = [numpy.complex64, numpy.complex64],

@@ -7,13 +7,13 @@ from winelo.client import SendFactory
 import winelo.common.hwprofile
 import time
 
-class sim_sink_c(gr.sync_block):
+class sim_sink_c(gr.block):
 
     def __init__(self, serverip, serverport, clientname,
                 clientindex, packetsize, startreactor,
                 noise_ampl, inphase_ampl, quadrature_ampl,
                 phase_noise_ampl, freq_offset, hwemu_on_client):
-        gr.sync_block.__init__(
+        gr.block.__init__(
             self,
             name = "WINELO-Simulation Sink",
             in_sig = [numpy.complex64],

@@ -4,10 +4,10 @@ from gnuradio import gr
 import struct
 from twisted.internet import reactor
 
-class gr2tw_c(gr.sync_block):
+class gr2tw_c(gr.block):
 
     def __init__(self, twisted_conn):
-        gr.sync_block.__init__(
+        gr.block.__init__(
             self,
             name = "WINELO-Simulation Sink",
             in_sig = [numpy.complex64],

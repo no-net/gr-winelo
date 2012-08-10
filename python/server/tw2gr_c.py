@@ -4,10 +4,10 @@ from gnuradio import gr
 from twisted.internet import reactor
 import time
 
-class tw2gr_c(gr.sync_block):
+class tw2gr_c(gr.block):
 
     def __init__(self, twisted_conn):
-        gr.sync_block.__init__(
+        gr.block.__init__(
             self,
             name = "winelo-tw2gr",
             in_sig = None,
