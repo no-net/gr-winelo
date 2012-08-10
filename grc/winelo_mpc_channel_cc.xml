@@ -4,13 +4,19 @@
   <key>winelo_mpc_channel_cc</key>
   <category>WiNeLo</category>
   <import>import winelo</import>
-  <make>winelo.mpc_channel_cc()</make>
+  <make>winelo.mpc_channel_cc($taps_delays)</make>
 <param>
 	<name>Num Inputs</name>
 	<key>num_inputs</key>
 	<value>2</value>
 	<type>int</type>
 </param>
+<param>
+	<name>Taps Delays</name>
+	<key>taps_delays</key>
+	<value>0, 0, 0</value>
+	<type>int_vector</type>
+	</param>
 <sink>
 	<name>in</name>
 	<type>complex</type>

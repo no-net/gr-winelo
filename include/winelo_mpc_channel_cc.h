@@ -27,7 +27,7 @@
 class winelo_mpc_channel_cc;
 typedef boost::shared_ptr<winelo_mpc_channel_cc> winelo_mpc_channel_cc_sptr;
 
-WINELO_API winelo_mpc_channel_cc_sptr winelo_make_mpc_channel_cc ();
+WINELO_API winelo_mpc_channel_cc_sptr winelo_make_mpc_channel_cc (const std::vector<int> &taps_delays);
 
 /*!
  * \brief <+description+>
@@ -35,9 +35,11 @@ WINELO_API winelo_mpc_channel_cc_sptr winelo_make_mpc_channel_cc ();
  */
 class WINELO_API winelo_mpc_channel_cc : public gr_sync_block
 {
-	friend WINELO_API winelo_mpc_channel_cc_sptr winelo_make_mpc_channel_cc ();
+	friend WINELO_API winelo_mpc_channel_cc_sptr winelo_make_mpc_channel_cc (const std::vector<int> &taps_delays);
 
-	winelo_mpc_channel_cc ();
+	std::vector<int>	d_taps_delays;
+
+	winelo_mpc_channel_cc (const std::vector<int> &taps_delays);
 
  public:
 	~winelo_mpc_channel_cc ();
