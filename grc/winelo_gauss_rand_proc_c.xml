@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<block>
+	<name>Complex Gaussian random process</name>
+	<key>winelo_complex_gauss_rand_proc</key>
+	<category>WiNeLo</category>
+	<import>from winelo.channel import gauss_rand_proc_c</import>
+	<make>gauss_rand_proc_c($sample_rate, $spectrum)</make>
+	<param>
+		<name>sample rate</name>
+		<key>sample_rate</key>
+		<value>10000</value>
+		<type>int</type>
+	</param>
+	<param>
+		<name>Spectrum</name>
+		<key>spectrum</key>
+		<type>raw</type>
+	</param>
+	<source>
+		<name>out</name>
+		<type>complex</type>
+	</source>
+</block>

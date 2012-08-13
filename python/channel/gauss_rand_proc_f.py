@@ -2,7 +2,7 @@ from gnuradio import gr
 
 class gauss_rand_proc_f(gr.hier_block2):
     def __init__(self, sample_rate, spectrum):
-        gr.hier_block2.__init__(self, "Random Gaussian Process",
+        gr.hier_block2.__init__(self, "Float Gaussian Random Process",
             gr.io_signature(0, 0, 0),
             gr.io_signature(1, 1, gr.sizeof_float))
 
