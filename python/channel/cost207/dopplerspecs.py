@@ -2,11 +2,12 @@
 import numpy as np
 
 class dopplerspecs():
-    def __init__(self, N, fmax):
+    def __init__(self, N, fmax, spec_type):
         self.N = N
         self.fmax = fmax
         self.A_1 = 50/( np.sqrt( 2*np.pi ) * 3 * self.fmax )
         self.A_2 = 10**1.5/( np.sqrt( 2*np.pi ) * (np.sqrt(10) + 5) * self.fmax )
+
         self.gen_spec = {
                 'jakes': self.jakes,
                 'gauss1': self.gauss1,
@@ -14,13 +15,8 @@ class dopplerspecs():
                 'rice': self.rice
                 }
 
-        self.spectra = {'jakes':None,
-                        'gauss1':None,
-                        'gauss2':None,
-                        'rice':None }
-        for key in self.spectra.keys():
-            print "Generating %s Doppler spectrum" % key
-            self.spectra[key] = self.gen_spec[key]()
+        #print "Generating %s Doppler spectrum" % spec
+        self.spec = self.gen_spec[spec_type]()
 
     def _gauss(self, A_i, f_i, s_i, f):
         return A_i*np.exp( (-(f-f_i)**2) / (2*s_i**2) )
@@ -79,12 +75,12 @@ class dopplerspecs():
         psd[f_dirac] = psd[f_dirac] + 0.91**2
         return psd
 
-    def get_spec(self, spec):
-        return ( np.linspace( -self.fmax, self.fmax, self.N), self.spectra[spec] )
+    def get_spec(self):
+        return ( np.linspace( -self.fmax, self.fmax, self.N), self.spec )
 
-    def plot_spec(self, spec):
+    def plot_spec(self):
         import pylab as plt
-        plt.plot(self.spectra[spec])
+        plt.plot(self.spec)
         plt.xlabel(r'$f$ in Hz')
         plt.ylabel(r'$S(f)$')
         plt.show()

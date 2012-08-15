@@ -6,7 +6,7 @@ class spec2soc():
     The Sum-of-Sinusoids method can only be used for symmetric doppler spectra.
     See Paetzold p. 104.
     """
-    def __init__(self, spec, N=20, method='gmea'):
+    def __init__(self, spec, N=10, method='gmea'):
         self.N = N
         self.spec = spec
         self.methodhandler = {
@@ -29,10 +29,9 @@ class spec2soc():
             index = np.where( (np.abs(P_S - n) - min_dist) == 0)[0][0]
             freqs_soc[idx] = self.spec[0][index]
         coeffs = np.array( [np.sqrt(sigma_squared/self.N)]*self.N)
-        self.soc = zip(freqs_soc, coeffs)
+        self.soc = zip(freqs_soc, coeffs, 2*np.pi*np.random.rand(self.N) )
 
     def get_soc(self):
-        print self.soc
         return self.soc
 
     def plot_spectra(self):

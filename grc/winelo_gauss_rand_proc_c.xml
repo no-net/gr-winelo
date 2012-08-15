@@ -4,17 +4,48 @@
 	<key>winelo_complex_gauss_rand_proc</key>
 	<category>WiNeLo</category>
 	<import>from winelo.channel import gauss_rand_proc_c</import>
-	<make>gauss_rand_proc_c($sample_rate, $spectrum)</make>
+	<make>gauss_rand_proc_c($sample_rate, $doppler_spectrum, $soc_method, $N)</make>
 	<param>
 		<name>sample rate</name>
 		<key>sample_rate</key>
-		<value>10000</value>
-		<type>int</type>
+		<value>samp_rate</value>
+		<type>real</type>
 	</param>
 	<param>
-		<name>Spectrum</name>
-		<key>spectrum</key>
-		<type>raw</type>
+		<name>Doppler Spectrum</name>
+		<key>doppler_spectrum</key>
+		<type>string</type>
+		<option>
+			<name>COST 207 Rice</name>
+			<key>cost207:rice</key>
+		</option>
+		<option>
+			<name>COST 207 Jakes</name>
+			<key>cost207:jakes</key>
+		</option>
+		<option>
+			<name>COST 207 Gauss I</name>
+			<key>cost207:gauss1</key>
+		</option>
+		<option>
+			<name>COST 207 Gauss II</name>
+			<key>cost207:gauss2</key>
+		</option>
+	</param>
+	<param>
+		<name>SOC method</name>
+		<key>soc_method</key>
+		<type>string</type>
+		<option>
+			<name>GMEA</name>
+			<key>gmea</key>
+		</option>
+	</param>
+	<param>
+		<name>Number of Cisoids</name>
+		<key>N</key>
+		<value>10</value>
+		<type>int</type>
 	</param>
 	<source>
 		<name>out</name>

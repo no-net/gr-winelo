@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <block>
-	<name>Gaussian random process</name>
+	<name>Float Gaussian random process</name>
 	<key>winelo_gauss_rand_proc</key>
 	<category>WiNeLo</category>
 	<import>from winelo.channel import gauss_rand_proc_f</import>
