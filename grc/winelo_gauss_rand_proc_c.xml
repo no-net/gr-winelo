@@ -4,12 +4,13 @@
 	<key>winelo_complex_gauss_rand_proc</key>
 	<category>WiNeLo</category>
 	<import>from winelo.channel import gauss_rand_proc_c</import>
-	<make>gauss_rand_proc_c($sample_rate, $doppler_spectrum, $soc_method, $N)</make>
+	<make>gauss_rand_proc_c($sample_rate, $doppler_spectrum, $soc_method, $N, $doppler_opts)</make>
 	<param>
 		<name>sample rate</name>
 		<key>sample_rate</key>
 		<value>samp_rate</value>
 		<type>real</type>
+		<hide>part</hide>
 	</param>
 	<param>
 		<name>Doppler Spectrum</name>
@@ -33,7 +34,14 @@
 		</option>
 	</param>
 	<param>
-		<name>SOC method</name>
+		<name>Doppler Options</name>
+		<key>doppler_opts</key>
+		<value>{'N':201, 'fmax':100 }</value>
+		<type>raw</type>
+		<hide>part</hide>
+	</param>
+	<param>
+		<name>SoC method</name>
 		<key>soc_method</key>
 		<type>string</type>
 		<option>
