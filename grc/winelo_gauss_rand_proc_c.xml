@@ -48,6 +48,11 @@
 			<name>GMEA</name>
 			<key>gmea</key>
 		</option>
+		<option>
+			<name>MED</name>
+			<key>med</key>
+		</option>
+
 	</param>
 	<param>
 		<name>Number of Cisoids</name>

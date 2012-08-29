@@ -10,7 +10,8 @@ class spec2soc():
         self.N = N
         self.spec = spec
         self.methodhandler = {
-                'gmea':self.gmea
+                'gmea':self.gmea,
+                'med':self.med
                 }
         self.methodhandler[method]()
 
@@ -28,8 +29,39 @@ class spec2soc():
             min_dist = min( np.abs(P_S - n) )
             index = np.where( (np.abs(P_S - n) - min_dist) == 0)[0][0]
             freqs_soc[idx] = self.spec[0][index]
-        coeffs = np.array( [np.sqrt(sigma_squared/self.N)]*self.N)
-        self.soc = zip(freqs_soc, coeffs, 2*np.pi*np.random.rand(self.N) )
+        # normalize to power of one
+        spec_soc = np.array( [float(1)/self.N]*self.N)
+        self.soc = zip(freqs_soc, spec_soc, 2*np.pi*np.random.rand(self.N) )
+
+    # Method of Equal Distance. Paetzold p 151
+    # in Paetzold it is only described for sum of sinusoids but I think it is
+    # also applicable to sum of cisoids
+    def med(self):
+        N = self.N
+        fstart = min(self.spec[0])
+        fend = max(self.spec[0])
+        # initial bins
+        freqs_soc = np.linspace(fstart, fend, N+1)
+        # space between two bins
+        delta_f = freqs_soc[1] - freqs_soc[0]
+        # shift all bins half of an interval to the right
+        freqs_soc = freqs_soc + delta_f/2
+        # delete the last entry
+        freqs_soc = freqs_soc[:-1]
+        # initialize the Sum-of-Sinusoid power spectrum density
+        spec_soc = np.zeros( freqs_soc.shape )
+
+        for idx, f in enumerate(freqs_soc):
+            idx_temp = np.logical_and( self.spec[0] >= f-delta_f/2, self.spec[0] <= f+delta_f/2 )
+            freqs_temp = self.spec[0][idx_temp]
+            spec_temp = self.spec[1][idx_temp]
+            spec_soc[idx] = np.trapz( spec_temp, freqs_temp )
+
+        print 'The following to values can be used to judge the quality of the approximation'
+        print 'np.trapz(psd, freqs): ', np.trapz(self.spec[1], self.spec[0])
+        print 'sum(spec_soc): ', sum(spec_soc)
+
+        self.soc = zip(freqs_soc, spec_soc, 2*np.pi*np.random.rand(self.N) )
 
     def get_soc(self):
         return self.soc
