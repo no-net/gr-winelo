@@ -10,8 +10,12 @@
 
 %{
 #include "winelo_mpc_channel_cc.h"
+#include "winelo_evm_cc.h"
 %}
 
 
 GR_SWIG_BLOCK_MAGIC(winelo,mpc_channel_cc);
 %include "winelo_mpc_channel_cc.h"
+
+GR_SWIG_BLOCK_MAGIC(winelo,evm_cc);
+%include "winelo_evm_cc.h"

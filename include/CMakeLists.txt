@@ -22,5 +22,6 @@
 ########################################################################
 install(FILES
     winelo_api.h
-    winelo_mpc_channel_cc.h DESTINATION include/winelo
+    winelo_mpc_channel_cc.h
+    winelo_evm_cc.h DESTINATION include/winelo
 )

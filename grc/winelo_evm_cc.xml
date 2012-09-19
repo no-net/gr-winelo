@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<block>
+	<name>evm_cc</name>
+	<key>winelo_evm_cc</key>
+	<category>WiNeLo</category>
+	<import>import winelo</import>
+	<make>winelo.evm_cc($win_size)</make>
+	
+	<param>
+		<name>Window Size</name>
+		<key>win_size</key>
+		<value>100</value>
+		<type>int</type>
+	</param>
+
+	<sink>
+		<name>in0</name>
+		<type>complex</type>
+	</sink>
+	<sink>
+		<name>in1</name>
+		<type>complex</type>
+	</sink>
+
+	<source>
+		<name>out</name>
+		<type>float</type>
+	</source>
+</block>

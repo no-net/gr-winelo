@@ -20,7 +20,7 @@
 ########################################################################
 include(GrPlatform) #define LIB_SUFFIX
 
-add_library(gnuradio-winelo SHARED winelo_mpc_channel_cc.cc )
+add_library(gnuradio-winelo SHARED winelo_mpc_channel_cc.cc winelo_evm_cc.cc )
 target_link_libraries(gnuradio-winelo ${Boost_LIBRARIES} ${GRUEL_LIBRARIES} ${GNURADIO_CORE_LIBRARIES})
 set_target_properties(gnuradio-winelo PROPERTIES DEFINE_SYMBOL "gnuradio_winelo_EXPORTS")
 
