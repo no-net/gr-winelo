@@ -63,27 +63,35 @@ winelo_evm_cc::work (int noutput_items,
 	const gr_complex *in0 = (const gr_complex *) input_items[0];
 	const gr_complex *in1 = (const gr_complex *) input_items[1];
 	float *out = (float *) output_items[0];
+	memset(out, 0, noutput_items*sizeof(float));
 
 	int nii = d_win_size;
 	gr_complex *temp_c = (gr_complex*)fftwf_malloc(sizeof(gr_complex)*d_win_size);
 	float *temp_f = (float*)fftwf_malloc(sizeof(float)*d_win_size);
+	
+	for(int k = 0; k < noutput_items; k++)
+	{
+		std::cout << k << std::endl;
+		float *in0s = ((float*)in0)+k*d_win_size;
+		float *in1s = ((float*)in1)+k*d_win_size;
+		std::cout << in0s << std::endl;
+		std::cout << in1s << std::endl;
+		if ( is_unaligned() )
+		{
 
-	if ( is_unaligned() )
-	{
-		volk_32f_x2_subtract_32f_a((float*)temp_c, (float*)in0, (float*)in1, 2*d_win_size);
-		volk_32fc_magnitude_squared_32f_u(temp_f, temp_c, d_win_size);
+			volk_32f_x2_subtract_32f_u((float*)temp_c, in0s, in1s, 2*d_win_size);
+			volk_32fc_magnitude_squared_32f_u(temp_f, temp_c, d_win_size);
+		}
+		else
+		{
+			volk_32f_x2_subtract_32f_a((float*)temp_c, in0s, in1s, 2*d_win_size);
+			volk_32fc_magnitude_squared_32f_a(temp_f, temp_c, d_win_size);
+		}
+		for(int l = 0; l < d_win_size; l++)
+		{
+			out[k] += temp_f[l];
+		}
 	}
-	else
-	{
-		volk_32f_x2_subtract_32f_a((float*)temp_c, (float*)in0, (float*)in1, 2*d_win_size);
-		volk_32fc_magnitude_squared_32f_a(temp_f, temp_c, d_win_size);
-	}
-	double sum = 0;
-	for( int l = 0; l < d_win_size; l++)
-	{
-		sum += temp_f[l];
-	}
-	out[0] = sum;
-	return 1;
+	return noutput_items;
 }
 
