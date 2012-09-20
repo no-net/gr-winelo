@@ -38,7 +38,7 @@ class WINELO_API winelo_evm_cc : public gr_sync_decimator
 	friend WINELO_API winelo_evm_cc_sptr winelo_make_evm_cc (int win_size);
 
 	int d_win_size;
-
+	int d_alignment_multiple;
 	winelo_evm_cc (int win_size);
 
  public:
