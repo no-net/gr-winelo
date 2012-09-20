@@ -70,7 +70,8 @@ winelo_evm_cc::work (int noutput_items,
 
 	if ( is_unaligned() )
 	{
-		volk_32f_x2_subtract_32f_a((float*)temp_c, (float*)in0, (float*)in1, 2*d_win_size);
+		std::cout << "unaligned" << std::endl;
+		volk_32f_x2_subtract_32f_u((float*)temp_c, (float*)in0, (float*)in1, 2*d_win_size);
 		volk_32fc_magnitude_squared_32f_u(temp_f, temp_c, d_win_size);
 	}
 	else
