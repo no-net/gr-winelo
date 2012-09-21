@@ -77,15 +77,13 @@ winelo_evm_cc::work (int noutput_items,
 
 	bool unalignment = is_unaligned();
 	
-	std::cout << "work" << std::endl;
-	
 	for(int k = 0; k < noutput_items; k++)
 	{
-
 		if ( unalignment )
 		{
 			volk_32f_x2_subtract_32f_u((float*)temp_c, in0s, in1s, 2*d_win_size);
-			volk_32fc_magnitude_squared_32f_u(temp_f, temp_c, d_win_size);
+			// aligned kernel can be used since temp_c and temp_f are alliged due to fftwf
+			volk_32fc_magnitude_squared_32f_a(temp_f, temp_c, d_win_size);
 		}
 		else
 		{
@@ -99,8 +97,8 @@ winelo_evm_cc::work (int noutput_items,
 		out[k] = out[k]/d_win_size;
 
 		nproc += d_win_size;
-		in0s += d_win_size;
-		in1s += d_win_size;
+		in0s += 2*d_win_size;
+		in1s += 2*d_win_size;
 
 		// if the buffers were unaligned from the beginning
 		// we never will know when they will be aligned again.
