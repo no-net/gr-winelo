@@ -24,8 +24,6 @@ install(FILES
 	winelo_compare_2streams_sink_c.xml
 	winelo_mrc_vcc.xml
 	winelo_count_samples_cc.xml
-	winelo_gauss_rand_proc_f.xml
 	winelo_gauss_rand_proc_c.xml
-	winelo_rayleigh_cc.xml
-    winelo_evm_cc.xml DESTINATION share/gnuradio/grc/blocks
+    	winelo_evm_cc.xml DESTINATION share/gnuradio/grc/blocks
 )

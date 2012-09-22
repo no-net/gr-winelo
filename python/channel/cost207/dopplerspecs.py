@@ -21,6 +21,10 @@ class dopplerspecs():
         self.A_2 = 10**1.5/( np.sqrt( 2*np.pi ) * (np.sqrt(10) + 5) * self.fmax )
         self.freqs = np.linspace( -self.fmax, self.fmax, self.N)
 
+        self.specs_odd = ['gauss1', 'gauss2', 'rice']
+        self.specs_even = ['jakes']
+
+
     def _gauss(self, A_i, f_i, s_i, f):
         return A_i*np.exp( (-(f-f_i)**2) / (2*s_i**2) )
 

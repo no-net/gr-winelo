@@ -4,7 +4,7 @@
 	<key>winelo_complex_gauss_rand_proc</key>
 	<category>WiNeLo</category>
 	<import>from winelo.channel import gauss_rand_proc_c</import>
-	<make>gauss_rand_proc_c($sample_rate, $doppler_spectrum, $soc_method, $N, $doppler_opts)</make>
+	<make>gauss_rand_proc_c($sample_rate, $doppler_spectrum, $param_method, $N, $doppler_opts)</make>
 	<param>
 		<name>sample rate</name>
 		<key>sample_rate</key>
@@ -41,21 +41,25 @@
 		<hide>part</hide>
 	</param>
 	<param>
-		<name>SoC method</name>
-		<key>soc_method</key>
+		<name>Parameterization Method</name>
+		<key>param_method</key>
 		<type>string</type>
 		<option>
-			<name>GMEA</name>
+			<name>SoS: MEA</name>
+			<key>mea</key>
+		</option>
+		<option>
+			<name>SoC: GMEA</name>
 			<key>gmea</key>
 		</option>
 		<option>
-			<name>MED</name>
+			<name>SoS/SoC: MED</name>
 			<key>med</key>
 		</option>
 
 	</param>
 	<param>
-		<name>Number of Cisoids</name>
+		<name>Number of Sinusoids/Cisoids</name>
 		<key>N</key>
 		<value>10</value>
 		<type>int</type>

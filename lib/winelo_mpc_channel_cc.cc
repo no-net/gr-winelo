@@ -26,6 +26,7 @@
 #include <winelo_mpc_channel_cc.h>
 #include <volk/volk.h>
 #include <iostream>
+#include <fftw3.h>
 
 winelo_mpc_channel_cc_sptr
 winelo_make_mpc_channel_cc (const std::vector<int> &taps_delays, const std::vector<float> &pdp)
@@ -67,6 +68,13 @@ winelo_mpc_channel_cc::winelo_mpc_channel_cc (const std::vector<int> &taps_delay
 	// set_history needs an odd number, otherwise the buffers will be unaligned.
 	if(max%2 == 0)
 		max += 1;
+	else
+	{
+		for(int i = 0; i < d_taps_delays.size(); i++)
+		{
+			d_taps_delays[i]--;
+		}
+	}
 	set_history(max);
 
 	const int alignment_multiple = volk_get_alignment() / sizeof(gr_complex);
@@ -83,22 +91,22 @@ winelo_mpc_channel_cc::work (int noutput_items,
 			gr_vector_void_star &output_items)
 {
   	gr_complex *out = (gr_complex *) output_items[0];
-  	gr_complex *data = (gr_complex *) input_items[0];
+  	gr_complex *in = (gr_complex *) input_items[0];
 	memset(out, 0, noutput_items*sizeof(gr_complex));
   	int noi = noutput_items;
   	
-	gr_complex temp[noutput_items];
+	gr_complex *temp = (gr_complex*)fftwf_malloc(sizeof(gr_complex)*noutput_items);
 
 	for(size_t i = 0; i < input_items.size()-1; i++)
 	{
-		gr_complex *vec1_start = data+d_taps_delays[i];
+		gr_complex *vec1_start = in+d_taps_delays[i];
 		gr_complex *vec2_start = (gr_complex*)input_items[i+1] + d_taps_delays[i];
 		// There are four different cases for the alignment that have to be considered
 		// buffers are unaligned and the delay is an even number => call unaligned
 		// buffers are aligned and the delay is an odd number => call unaligned
 		// buffers are unaligned and the delay is an odd number => call aligned
 		// buffers are aligned and the delay is an even number => call aligned
-		if ( (is_unaligned() && (d_taps_delays[i]%2 == 0)) || (!is_unaligned() && (d_taps_delays[i]%2 != 0)) )
+		if ( (is_unaligned() && (d_taps_delays[i]%4 == 0)) || (!is_unaligned() && (d_taps_delays[i]%4 != 0)) )
 		{
 			volk_32fc_x2_multiply_32fc_u(temp, vec1_start, vec2_start, noi);
 			volk_32f_s32f_multiply_32f_u((float *)temp, (float *)temp, d_pdp[i], 2*noi);

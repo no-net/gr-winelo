@@ -31,7 +31,7 @@ class spec2soc():
             freqs_soc[idx] = self.spec[0][index]
         # normalize to power of one
         spec_soc = np.array( [float(1)/self.N]*self.N)
-        self.soc = zip(freqs_soc, spec_soc, 2*np.pi*np.random.rand(self.N) )
+        self.soc = zip(freqs_soc, spec_soc)
 
     # Method of Equal Distance. Paetzold p 151
     # in Paetzold it is only described for sum of sinusoids but I think it is
@@ -61,7 +61,7 @@ class spec2soc():
         print 'np.trapz(psd, freqs): ', np.trapz(self.spec[1], self.spec[0])
         print 'sum(spec_soc): ', sum(spec_soc)
 
-        self.soc = zip(freqs_soc, spec_soc, 2*np.pi*np.random.rand(self.N) )
+        self.soc = zip(freqs_soc, spec_soc)
 
     def get_soc(self):
         return self.soc
