@@ -8,6 +8,9 @@ class dopplerspecs():
         self.A_1 = 50/( np.sqrt( 2*np.pi ) * 3 * self.fmax )
         self.A_2 = 10**1.5/( np.sqrt( 2*np.pi ) * (np.sqrt(10) + 5) * self.fmax )
 
+        specs_odd = ['gauss1', 'gauss2', 'rice']
+        specs_even = ['jakes']
+
         self.gen_spec = {
                 'jakes': self.jakes,
                 'gauss1': self.gauss1,
