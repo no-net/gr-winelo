@@ -5,6 +5,8 @@ class spec2soc():
     """
     The Sum-of-Sinusoids method can only be used for symmetric doppler spectra.
     See Paetzold p. 104.
+    The Sum-of-Cisoids method is better suited for non-symmetric Doppler
+    Spectra. Paetzold p126
     """
     def __init__(self, spec, N=10, method='gmea'):
         self.N = N
@@ -56,10 +58,6 @@ class spec2soc():
             freqs_temp = self.spec[0][idx_temp]
             spec_temp = self.spec[1][idx_temp]
             spec_soc[idx] = np.trapz( spec_temp, freqs_temp )
-
-        print 'The following to values can be used to judge the quality of the approximation'
-        print 'np.trapz(psd, freqs): ', np.trapz(self.spec[1], self.spec[0])
-        print 'sum(spec_soc): ', sum(spec_soc)
 
         self.soc = zip(freqs_soc, spec_soc)
 
