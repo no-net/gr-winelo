@@ -61,10 +61,10 @@ class dopplerspecs():
 
     def _gen_rice(self):
         sigma = 0.41
-        psd = np.zeros(N)
+        psd = np.zeros(self.N)
         comp_jakes = lambda f: sigma**2/(np.pi*self.fmax*np.sqrt( 1 - (f/self.fmax)**2))
         psd[1:-1] = comp_jakes( self.freqs[1:-1] )
-        f_dirac = np.int(0.7*N)
+        f_dirac = np.int(0.7*self.N)
         psd[f_dirac] = psd[f_dirac] + 0.91**2
         return psd
 
