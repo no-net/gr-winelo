@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<block>
+	<name>COST207 Rural Area 4Path</name>
+	<key>winelo_cost207_rural_area_4path</key>
+	<category>WiNeLo</category>
+	<import>from winelo.channel.cost207 import rural_area_cc</import>
+	<make>rural_area_cc.paths_4($sample_rate, $fmax)</make>
+	<param>
+		<name>sample rate</name>
+		<key>sample_rate</key>
+		<value>samp_rate</value>
+		<type>real</type>
+		<hide>part</hide>
+	</param>
+	<param>
+		<name>Maximum Doppler Shift</name>
+		<key>fmax</key>
+		<value>100</value>
+		<type>real</type>
+	</param>
+	<sink>
+		<name>in</name>
+		<type>complex</type>
+	</sink>
+	<source>
+		<name>out</name>
+		<type>complex</type>
+	</source>
+</block>

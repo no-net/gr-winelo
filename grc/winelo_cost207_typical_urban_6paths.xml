@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<block>
+	<name>COST207 Typical Urban 6Paths</name>
+	<key>winelo_cost207_typical_urban_6paths</key>
+	<category>WiNeLo</category>
+	<import>from winelo.channel.cost207 import typical_urban_cc</import>
+	<make>typical_urban_cc.paths_6($sample_rate, $fmax)</make>
+	<param>
+		<name>sample rate</name>
+		<key>sample_rate</key>
+		<value>samp_rate</value>
+		<type>real</type>
+		<hide>part</hide>
+	</param>
+	<param>
+		<name>Maximum Doppler Shift</name>
+		<key>fmax</key>
+		<value>100</value>
+		<type>real</type>
+	</param>
+	<sink>
+		<name>in</name>
+		<type>complex</type>
+	</sink>
+	<source>
+		<name>out</name>
+		<type>complex</type>
+	</source>
+</block>

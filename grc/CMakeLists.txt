@@ -25,6 +25,9 @@ install(FILES
 	winelo_mrc_vcc.xml
 	winelo_count_samples_cc.xml
 	winelo_gauss_rand_proc_c.xml
-	winelo_cost207_rural_area_4path.xml
+	winelo_cost207_rural_area_4paths.xml
+	winelo_cost207_typical_urban_6paths.xml
+	winelo_cost207_bad_urban_6paths.xml
+	winelo_cost207_hilly_terrain_6paths.xml
     	winelo_evm_cc.xml DESTINATION share/gnuradio/grc/blocks
 )
