@@ -2,6 +2,7 @@ import numpy
 
 from gnuradio import blks2
 from gnuradio import gr
+import gnuradio.extras
 
 class mrc_vcc(gr.basic_block):
     def __init__(self, pilot_seq_len, channel_coherence_len, num_inputs):

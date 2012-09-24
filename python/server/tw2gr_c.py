@@ -1,6 +1,8 @@
 import numpy
 
 from gnuradio import gr
+# import grextras for python blocks
+import gnuradio.extras
 from twisted.internet import reactor
 import time
 

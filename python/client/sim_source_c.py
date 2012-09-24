@@ -1,11 +1,12 @@
 import numpy
 from gnuradio import gr
+# import grextras for python blocks
+import gnuradio.extras
 
 from twisted.internet import reactor
 import thread
 from winelo.client import SendFactory
 import winelo.common.hwprofile
-
 import time
 
 class sim_source_c(gr.block):

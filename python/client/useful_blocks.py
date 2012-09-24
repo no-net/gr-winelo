@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 from gnuradio import gr
+# import grextras for python blocks
+import gnuradio.extras
 
 import numpy
 import time
