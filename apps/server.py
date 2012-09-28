@@ -55,10 +55,10 @@ class Sync(Protocol):
         # tx: produces samples
         # rx: consumes samples
         self.info['type'] = None
-        # depening on the type, different GNU Radio blocks are used to connect
+        # depending on the type, different GNU Radio blocks are used to connect
         # the client to the channel flowgraph.
         self.info['block'] = None
-        # Dictionary that contain will contain all the channels from a
+        # Dictionary that will contain all the channels from a
         # transmitter to all receivers. The channels are accessed via the name
         # of the receiver
         self.info['channels'] = {}
@@ -67,31 +67,34 @@ class Sync(Protocol):
         # self.factory provides the information of all connections
         # to this client
         self.factory = factory
-        # flag that is set if all requested samples from this client have
-        # arrived
+        # flag that is relevant for txs. The flag is set when all requested
+        # samples have arrived and were passed to the channel flowgraph
         self.samples_passed_2_gr = False
         # flag used by rx if they have received their stuff
         self.ack_received = False
-        #
+        # Threading condition that manages the data exchange between GNU Radio
+        # and Twisted.
         self.condition = threading.Condition()
         self.kill = False
 
     def connectionMade(self):
-        """
-        Called automatically when a new client connects.
+        """Called automatically when a new client connects.
+
+        When a new client connects it will immediately start sending some
+        initial information about itself, like its name, type, etc.
         """
         print 'A client just connected'
         # send the currently used packet size to the client
-        self.sendData('packetsizeEOH%iEOP' % self.factory.packet_size)
+        self.transport.write('packetsizeEOH%iEOP' % self.factory.packet_size)
         # set the connect in process flag
         # No new packets of samples due to received acks from the receivers will
         # be requested from the transmitters will a connect is in process.
         self.factory.connect_in_process = True
 
     def connectionLost(self, reason):
-        """
-        Called automatically when the connection to a client is lost. This
-        method basicially does some clean-up.
+        """ Called automatically when the connection to a client is lost.
+        
+        This method basicially does some clean-up.
         """
         # set the disconnect in process flag
         # No new packets of samples due to received acks from the receivers will
@@ -113,6 +116,7 @@ class Sync(Protocol):
         reactor.callLater(1, self.unregisterClient)
 
     def unregisterClient(self):
+        """ Called when a client disconnected """
         # teardown the channel
         self.factory.channel.teardown_channel()
 
@@ -122,6 +126,8 @@ class Sync(Protocol):
         # rebuild the channel
         self.factory.channel.rebuild_channel()
         self.factory.disconnect_in_process = False
+
+        self.factory.updatePacketSize()
 
         # Request new samples from all connected transmitters, since no new
         # samples were requested while the channel flowgraph was shutting down.
@@ -237,15 +243,16 @@ class Sync(Protocol):
 
         for tx in self.factory.clients['tx']:
             # new tx blocks are needed, otherwise I always received too many
-            # acks. Maybe some samples we still in the flowgraph
+            # acks. Maybe some samples were still in the flowgraph
             tx.info['block'] = None
             tx.info['block'] = winelo.server.tw2gr_c(tx)
+            # Create a channel for each receiver, pass if a channel already
+            # exists.
             for rx in self.factory.clients['rx']:
                 if rx.info['name'] in tx.info['channels']:
                     pass
                 else:
                     tx.info['channels'][rx.info['name']] = self.factory.channel_model(**self.factory.args.opts)
-                    #tx.info['channels'][rx.info['name']] = self.factory.channel_model(1)
 
         # After a new client connected sucessfully, update the packet size which
         # will be used from now on.
@@ -314,12 +321,6 @@ class Sync(Protocol):
         self.transport.write('requestEOH%dEOP' % (number_of_samples))
         self.samples_passed_2_gr = False
 
-    def sendData(self, data):
-        """
-        Sends the synchronised data, acquired through zero-padding, to the
-        client of this protocol-instance.
-        """
-        self.transport.write(data)
 
 class SyncFactory(ServerFactory):
     """
@@ -360,8 +361,13 @@ class SyncFactory(ServerFactory):
         # 999999 is added so that min( ... ) always returns a result
         min_tx = min([x.info['packet_size'] for x in self.clients['tx']] + [999999])
         min_rx = min([x.info['packet_size'] for x in self.clients['rx']] + [999999])
-        self.packet_size_update = min(min_tx, min_rx)
-        print 'updated packet_size:', self.packet_size_update
+        self.packet_size = min(min_tx, min_rx)
+        for tx in self.clients['tx']:
+            tx.samples = numpy.zeros(self.packet_size, dtype=complex)
+            tx.transport.write('packetsizeEOH%iEOP' % self.packet_size)
+        for rx in self.clients['rx']:
+            rx.transport.write('packetsizeEOH%iEOP' % self.packet_size)
+        print 'updated packet_size:', self.packet_size
 
 def main():
     """

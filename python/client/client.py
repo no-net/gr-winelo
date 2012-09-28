@@ -71,7 +71,7 @@ class SendStuff(Protocol):
             payload, self.data = rest.split('EOP',1)
             self.packet_size = int(payload)
         elif header == 'data':
-            # have we received a complete packet
+            # have we received a complete packet?
             if len(rest)>=(self.packet_size*8+3):
                 # if samples were transmitted we can't use EOP since the data
                 # stream might contain the same sequence. Therefore we have to
