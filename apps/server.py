@@ -226,7 +226,7 @@ class Sync(Protocol):
         Adds the client to the list of connected clients and update the GNU
         Radio flowgraph
         """
-        # Bringing down the channel due to a newly connected client"
+        # Bringing down the channel due to a newly connected client
         self.factory.channel.teardown_channel()
 
         # Append this client to the list of all clients of the same type
@@ -242,8 +242,8 @@ class Sync(Protocol):
                 if rx.info['name'] in tx.info['channels']:
                     pass
                 else:
-                    #tx.info['channels'][rx.info['name']] = gr.multiply_const_cc(1)
-                    tx.info['channels'][rx.info['name']] = winelo.channel.rayleigh_cc()
+                    tx.info['channels'][rx.info['name']] = self.factory.channel_model(**self.factory.args.opts)
+                    #tx.info['channels'][rx.info['name']] = self.factory.channel_model(1)
 
         # After a new client connected sucessfully, update the packet size which
         # will be used from now on.
@@ -325,7 +325,7 @@ class SyncFactory(ServerFactory):
     required by all clients and is in charge of synchronizing the
     different data-streams
     """
-    def __init__(self, args):
+    def __init__(self, args, channel_model):
         """
         Sets some global parameters for all connected clients.
         """
@@ -336,6 +336,7 @@ class SyncFactory(ServerFactory):
             self.clients['tx'],
             self.clients['rx']
             )
+        self.channel_model = channel_model
         self.packet_size = self.args.packetsize
         # Size of one element in packet --> numpy.complex
         self.packet_element_size = 8
@@ -365,8 +366,24 @@ def main():
     Setup a server, listening on the specified port and waiting for clients to
     connect.
     """
+
+    channel_models = {
+            'const':gr.multiply_const_cc,
+            'rayleigh':winelo.channel.models.rayleigh_cc,
+            'cost207badurban':winelo.channel.models.cost207.bad_urban_cc.paths_6,
+            'cost207hillyterain':winelo.channel.models.cost207.hilly_terrain_cc.paths_6,
+            'cost207typicalurban':winelo.channel.models.cost207.typical_urban_cc.paths_6,
+            'cost207ruralarea':winelo.channel.models.cost207.rural_area_cc.paths_4,
+            }
+
     parser = argparse.ArgumentParser(
-        description='Starts the gnuradio-channel-simmulation server GRCSS.' )
+        description='Starts the gnuradio-channel-simmulation server GRCSS.',
+                    formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument( '--model', '-M', action='store',
+        dest='model', nargs='?',
+        help='name of the channel model to be used. Must be one of the following:\n' + '\n'.join(channel_models.keys()))
+    parser.add_argument( '--opts', '-O', action='store',
+        dest='opts', nargs='*', help='channel model parameters. Something like:\n[sample_rate 32000 fmax 100] or [k 1]')
     parser.add_argument( '--port', '-P', type=int, action='store',
         dest='port', nargs='?', default=8888,
         help='the port on which the server is listening')
@@ -376,7 +393,12 @@ def main():
 
     args = parser.parse_args()
 
-    reactor.listenTCP(args.port, SyncFactory(args))
+    args.opts = dict(zip( args.opts[0::2], args.opts[1::2] ))
+    for key in args.opts.keys():
+        args.opts[key] = float(args.opts[key])
+    channel_model = channel_models[args.model]
+
+    reactor.listenTCP(args.port, SyncFactory(args, channel_model))
     print "Server is listening on port %d" % (args.port)
     print "The initial packet size is %i" % (args.packetsize)
     reactor.run()

@@ -44,7 +44,7 @@
 	<param>
 		<name>Packet Size</name>
 		<key>packetsize</key>
-		<value>50</value>
+		<value>5000</value>
 		<type>int</type>
 	</param>
 	<param>

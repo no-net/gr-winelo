@@ -9,6 +9,7 @@ class paths_6(gr.hier_block2):
             gr.io_signature(1, 1, gr.sizeof_gr_complex))
 
         self.sample_rate = sample_rate
+        print sample_rate
         # Statistics of this channel, taken from
         # "Mobile Radio Channels", Paetzold, 2011, p 357
         # Delays of the multipath components in seconds
