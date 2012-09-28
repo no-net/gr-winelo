@@ -50,7 +50,6 @@ from winelo_swig import *
 import gnuradio.extras.block_gateway
 import server
 import client
-import common
 import channel
 
 # ----------------------------------------------------------------

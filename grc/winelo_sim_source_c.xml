@@ -9,14 +9,7 @@
 	<key>winelo_source</key>
 	<category>WiNeLo</category>
 	<import>from winelo.client import sim_source_c</import>
-	<make>sim_source_c($serverip, $serverport, $clientname, $clientindex, $packetsize, $startreactor,
-		$noise_ampl, $inphase_ampl, $quadrature_ampl, $phase_noise_ampl, $freq_offset,
-		$hwemu_on_client)</make>
-	<callback>set_noise_ampl($noise_ampl)</callback>
-	<callback>set_inphase_ampl($inphase_ampl)</callback>
-	<callback>set_quadrature_ampl($quadrature_ampl)</callback>
-	<callback>set_phase_noise_ampl($phase_noise_ampl)</callback>
-	<callback>set_freq_offset($freq_offset)</callback>
+	<make>sim_source_c($serverip, $serverport, $clientname, $clientindex, $packetsize, $startreactor)</make>
 	<param>
 		<name>Server IP</name>
 		<key>serverip</key>
@@ -50,49 +43,6 @@
 	<param>
 		<name>Start Reactor</name>
 		<key>startreactor</key>
-		<type>enum</type>
-		<option>
-			<name>Yes</name>
-			<key>True</key>
-		</option>
-		<option>
-			<name>No</name>
-			<key>False</key>
-		</option>
-	</param>
-	<param>
-		<name>Noise Ampl</name>
-		<key>noise_ampl</key>
-		<value>0.0</value>
-		<type>real</type>
-	</param>
-	<param>
-		<name>Inphase Ampl</name>
-		<key>inphase_ampl</key>
-		<value>1.0</value>
-		<type>real</type>
-	</param>
-	<param>
-		<name>Quadrature Ampl</name>
-		<key>quadrature_ampl</key>
-		<value>1.0</value>
-		<type>real</type>
-	</param>
-	<param>
-		<name>Phase Noise Ampl</name>
-		<key>phase_noise_ampl</key>
-		<value>0.0</value>
-		<type>real</type>
-	</param>
-	<param>
-		<name>Frequency Offset</name>
-		<key>freq_offset</key>
-		<value>0.0</value>
-		<type>real</type>
-	</param>
-	<param>
-		<name>HW Emulation on client</name>
-		<key>hwemu_on_client</key>
 		<type>enum</type>
 		<option>
 			<name>Yes</name>
