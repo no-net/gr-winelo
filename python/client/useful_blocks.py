@@ -15,7 +15,9 @@ class count_samples_cc(gr.block):
             in_sig = [numpy.complex64],
             out_sig = [numpy.complex64],
         )
+        self.limit = 1e6
         self.counter = 0
+        self.delta = 0
         self.timestart = time.time()
 
     def work(self, input_items, output_items):
@@ -23,11 +25,12 @@ class count_samples_cc(gr.block):
         out = output_items[0]
         #process data
         out[:] = in0
-        delta = len(in0)
-        if delta > 0:
-            self.counter += delta
+        self.delta = self.delta+len(in0)
+        if self.delta > self.limit:
+            self.counter += self.delta
             elapsed = time.time() - self.timestart
-            print 'Rate: %f samples/sec' % (delta/elapsed)
+            print 'Rate: %f samples/sec' % (self.delta/elapsed)
             print 'So far %i samples have passed this block' % self.counter
             self.timestart = time.time()
+            self.delta = 0
         return len(out)
