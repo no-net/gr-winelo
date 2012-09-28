@@ -167,6 +167,8 @@ class Sync(Protocol):
                 payload = rest[:self.factory.packet_size*8]
                 # the +3 removes the EOP flag from the data
                 self.data = rest[self.factory.packet_size*8+3:]
+            else:
+                return None
         # Take care of all other headers.
         else:
             try:
