@@ -1,5 +1,5 @@
 # add the install targets
-add_subdirectory(cost207)
+add_subdirectory(models)
 cmake_minimum_required (VERSION 2.8)
 install (FILES
 	__init__.py

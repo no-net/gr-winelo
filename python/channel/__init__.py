@@ -2,4 +2,4 @@
 from spec2sos import *
 from spec2soc import *
 from gauss_rand_proc_c import *
-import cost207
+import models

@@ -1,6 +1,5 @@
 from gnuradio import gr
 
-
 class gauss_rand_proc_c(gr.hier_block2):
     def __init__(self, sample_rate, spec_type, method, N, doppler_opts):
         gr.hier_block2.__init__(self, "Complex Gaussian Random Process",
@@ -19,7 +18,7 @@ class gauss_rand_proc_c(gr.hier_block2):
 
     def get_model(self, doppler_opts):
         if self.model_type == "cost207":
-            import winelo.channel.cost207 as cost207
+            import winelo.channel.models.cost207 as cost207
             try:
                 opts_N = doppler_opts['N']
                 opts_fmax = doppler_opts['fmax']

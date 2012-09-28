@@ -7,5 +7,5 @@ install (FILES
 	typical_urban_cc.py
 	bad_urban_cc.py
 	hilly_terrain_cc.py
-	DESTINATION ${GR_PYTHON_DIR}/winelo/channel/cost207;
+	DESTINATION ${GR_PYTHON_DIR}/winelo/channel/models/cost207;
 )

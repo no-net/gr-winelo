@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<block>
+	<name>Rayleigh Channel</name>
+	<key>winelo_rayleigh_cc</key>
+	<category>WiNeLo</category>
+	<import>from winelo.channel.rayleigh_cc import *</import>
+	<make>rayleigh_cc($sample_rate, $fmax)</make>
+	<param>
+		<name>sample rate</name>
+		<key>sample_rate</key>
+		<value>samp_rate</value>
+		<type>real</type>
+		<hide>part</hide>
+	</param>
+	<param>
+		<name>Maximum Doppler Shift</name>
+		<key>fmax</key>
+		<value>100</value>
+		<type>real</type>
+	</param>
+	<sink>
+		<name>in</name>
+		<type>complex</type>
+	</sink>
+	<source>
+		<name>out</name>
+		<type>complex</type>
+	</source>
+</block>
