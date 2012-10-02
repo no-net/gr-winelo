@@ -25,6 +25,7 @@ install(FILES
 	winelo_mrc_vcc.xml
 	winelo_count_samples_cc.xml
 	winelo_gauss_rand_proc_c.xml
+	winelo_cs_meas_cc.xml
 	winelo_rayleigh_cc.xml
 	winelo_cost207_rural_area_4paths.xml
 	winelo_cost207_typical_urban_6paths.xml
