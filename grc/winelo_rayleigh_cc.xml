@@ -3,7 +3,7 @@
 	<name>Rayleigh Channel</name>
 	<key>winelo_rayleigh_cc</key>
 	<category>WiNeLo</category>
-	<import>from winelo.channel.rayleigh_cc import *</import>
+	<import>from winelo.channel.models.rayleigh_cc import *</import>
 	<make>rayleigh_cc($sample_rate, $fmax)</make>
 	<param>
 		<name>sample rate</name>
