@@ -5,7 +5,5 @@ install (FILES
 	__init__.py
 	rayleigh_cc.py
 	cs_meas_cc.py
-	cs_meas_demo
 	DESTINATION ${GR_PYTHON_DIR}/winelo/channel/models;
-
 )

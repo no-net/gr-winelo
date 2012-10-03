@@ -4,13 +4,19 @@
 	<key>winelo_cs_meas_cc</key>
 	<category>WiNeLo</category>
 	<import>from winelo.channel.models.cs_meas_cc import *</import>
-	<make>cs_meas_cc($sample_rate)</make>
+	<make>cs_meas_cc($sample_rate, $file)</make>
 	<param>
 		<name>sample rate</name>
 		<key>sample_rate</key>
 		<value>samp_rate</value>
 		<type>real</type>
 		<hide>part</hide>
+	</param>
+	<param>
+		<name>File</name>
+		<key>file</key>
+		<value></value>
+		<type>file_open</type>
 	</param>
 	<sink>
 		<name>in</name>
