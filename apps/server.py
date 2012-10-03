@@ -93,7 +93,7 @@ class Sync(Protocol):
 
     def connectionLost(self, reason):
         """ Called automatically when the connection to a client is lost.
-        
+
         This method basicially does some clean-up.
         """
         # set the disconnect in process flag
@@ -378,6 +378,7 @@ def main():
     channel_models = {
             'const':gr.multiply_const_cc,
             'rayleigh':winelo.channel.models.rayleigh_cc,
+            'cs_meas':winelo.channel.models.cs_meas_cc,
             'cost207badurban':winelo.channel.models.cost207.bad_urban_cc.paths_6,
             'cost207hillyterrain':winelo.channel.models.cost207.hilly_terrain_cc.paths_6,
             'cost207typicalurban':winelo.channel.models.cost207.typical_urban_cc.paths_6,
@@ -401,9 +402,16 @@ def main():
 
     args = parser.parse_args()
 
+    # turn the channel model parameters in a dictionary
     args.opts = dict(zip( args.opts[0::2], args.opts[1::2] ))
     for key in args.opts.keys():
-        args.opts[key] = float(args.opts[key])
+        # convert the parameters to float, except if the parameter is a string
+        # than float() will throw a value error and we don't have to do
+        # anything
+        try:
+            args.opts[key] = float(args.opts[key])
+        except ValueError:
+            pass
     channel_model = channel_models[args.model]
 
     reactor.listenTCP(args.port, SyncFactory(args, channel_model))
