@@ -36,7 +36,7 @@
 	<param>
 		<name>Doppler Options</name>
 		<key>doppler_opts</key>
-		<value>{'N':201, 'fmax':100 }</value>
+		<value>{'N':2001, 'fmax':100 }</value>
 		<type>raw</type>
 		<hide>part</hide>
 	</param>
@@ -68,4 +68,20 @@
 		<name>out</name>
 		<type>complex</type>
 	</source>
+	<doc>
+Parameters:
+-----------
+Doppler Spectrum: which Doppler spectrum the complex Gaussian random process is based on.
+Doppler Options: additional parameters of the Dopplerspectrum. For the COST 207 model the
+	options have to be a Python dictionary like: {'N':2001, 'fmax':100} where N is the
+	number of points where the Doppler spectrum is evaluated and is directly related to
+	the accuracy; fmax is the maximum Doppler shift.
+Parameterization Method: method used to calculate the sum of sinusoids or cisoids that make
+	up the complex Gaussian random procss. As a rule of thumb use sum of sinusoids
+	for even Doppler spectra and conversely sum of cisoids for odd spectra.
+	In general the method of equal distances is inferior to the method of equal areas
+	and general method of equal areas with respect to their autocorrelation properties.
+Number of Sinusoids/Cisoids: how many sinusoids and cisoids will be used for the complex Gaussian random
+	process. The more the better, but in general N=10 performs adequately.
+	</doc>
 </block>
