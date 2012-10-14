@@ -27,19 +27,18 @@
 class winelo_evm_cc;
 typedef boost::shared_ptr<winelo_evm_cc> winelo_evm_cc_sptr;
 
-WINELO_API winelo_evm_cc_sptr winelo_make_evm_cc (int win_size);
+WINELO_API winelo_evm_cc_sptr winelo_make_evm_cc (int vector_length);
 
 /*!
- * \brief <+description+>
- *
+Computes the error vector magntitude.
  */
 class WINELO_API winelo_evm_cc : public gr_sync_decimator
 {
-	friend WINELO_API winelo_evm_cc_sptr winelo_make_evm_cc (int win_size);
+	friend WINELO_API winelo_evm_cc_sptr winelo_make_evm_cc (int vector_length);
 
-	int d_win_size;
+	int d_vector_length;
 	int d_alignment_multiple;
-	winelo_evm_cc (int win_size);
+	winelo_evm_cc (int vector_length);
 
  public:
 	~winelo_evm_cc ();

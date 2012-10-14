@@ -26,4 +26,8 @@
 		<name>out</name>
 		<type>complex</type>
 	</source>
+<doc>
+A channel model that is based on a real world measurement.
+gr-channelsounder has some tools to create such a model.
+</doc>
 </block>

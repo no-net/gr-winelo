@@ -4,11 +4,11 @@
 	<key>winelo_evm_cc</key>
 	<category>WiNeLo</category>
 	<import>import winelo</import>
-	<make>winelo.evm_cc($win_size)</make>
+	<make>winelo.evm_cc($vector_length)</make>
 	
 	<param>
-		<name>Window Size</name>
-		<key>win_size</key>
+		<name>Vector Length</name>
+		<key>vector_length</key>
 		<value>100</value>
 		<type>int</type>
 	</param>
@@ -26,4 +26,7 @@
 		<name>out</name>
 		<type>float</type>
 	</source>
+<doc>
+Computes the error vector magntitude.
+</doc>	
 </block>

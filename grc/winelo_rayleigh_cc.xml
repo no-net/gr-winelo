@@ -26,4 +26,7 @@
 		<name>out</name>
 		<type>complex</type>
 	</source>
+<doc>
+A Rayleigh Channel with a Jakes Power Spectral Density as the Doppler Spectrum
+</doc>
 </block>
