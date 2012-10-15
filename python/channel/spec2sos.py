@@ -4,23 +4,23 @@ import numpy as np
 class spec2sos():
     """
     The Sum-of-Sinusoids method can only be used for symmetric doppler spectra.
-    See Paetzold p. 104.
-
-    Parameters
-    ----------
-
-    psd: tuple( freqs, spectrum )
-        power spectrum density as produced by the cost207 module
-    N : int
-        number of sinusoids
-    method : string
-        method used to compute gains and frequencies
-        med: method of equal distances
-        mea: method of equal area
-
+    See [paetzold2011mobile]_ p. 104.
     """
 
     def __init__(self, psd, N=10, method='mea'):
+        """
+        Parameters:
+
+        psd: tuple( freqs, spectrum )
+            power spectrum density as produced by the cost207 module
+        N : int
+            number of sinusoids
+        method : string
+            method used to compute gains and frequencies
+            med: method of equal distances
+            mea: method of equal area
+
+        """
         self.N = N
         self.sos = {}
         self.psd = psd
@@ -30,8 +30,8 @@ class spec2sos():
                 }
         self.methodhandler[method]()
 
-    # Method of Equal Distances. Paetzold p 151
     def med(self):
+        """ Method of Equal Distances [paetzold2011mobile]_ p. 151. """
         N = self.N
         fstart = 0
         fend = max(self.psd[0])
@@ -55,8 +55,8 @@ class spec2sos():
         coeffs = np.divide( coeffs, np.sum(coeffs) )
         self.sos = zip(freqs_sos, coeffs )
 
-    # Method of Equal Areas, Paetzold p 162
     def mea(self):
+        """ Method of Equal Areas [paetzold2011mobile]_ p. 162. """
         G = np.cumsum(self.psd[1])
         sigma_squared = G[-1]
         n_bin = np.arange(1, self.N + 1, dtype=float)
@@ -72,9 +72,15 @@ class spec2sos():
         self.sos = zip(freqs_sos, coeffs)
 
     def get_sos(self):
+        """ Returns the sum of sinusoids.
+        """
+
         return self.sos
 
     def plot_spectra(self):
+        """ Plots the original Spectrum and the sum of sinusoids.
+        """
+
         import pylab as plt
         freqs = [ f[0] for f in self.sos ]
         negfreqs = [ -f[0] for f in self.sos ]

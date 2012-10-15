@@ -1,9 +1,7 @@
-#!/usr/bin/env python
 from gnuradio import gr
-#from twisted.internet import reactor
-#import thread
 
 class channel_model():
+    """ Tears down and rebuilds the flowgraph """
 
     def __init__(self, txs, rxs):
         self.tb = gr.top_block()

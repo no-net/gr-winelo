@@ -1,7 +1,21 @@
 from gnuradio import gr
 
 class gauss_rand_proc_c(gr.hier_block2):
+    """ GNU radio Block that models a complex Gaussian Random Process.
+    """
+
     def __init__(self, sample_rate, spec_type, method, N, doppler_opts):
+        """
+        Parameters:
+
+        sample_rate: sample_rate of the flowgraph
+        spec_type: type of the spectrum. Must be something like cost207:jakes
+        method: method used to create the sum of sinusoids/cisoids
+        N: number of sinusoids/cisoids
+        doppler_opts: options for the Doppler spectrum
+
+        """
+
         gr.hier_block2.__init__(self, "Complex Gaussian Random Process",
             gr.io_signature(0, 0, 0),
             gr.io_signature(1, 1, gr.sizeof_gr_complex))
@@ -11,12 +25,14 @@ class gauss_rand_proc_c(gr.hier_block2):
         self.N = N
 
         self.model_type, self.spec_type = spec_type.split(':')
-        self.model = self.get_model(doppler_opts)
-        gauss_rand_proc_c = self.get_gauss_rand_proc_c()
+        self.model = self._get_model(doppler_opts)
+        gauss_rand_proc_c = self._get_gauss_rand_proc_c()
 
         self.connect(gauss_rand_proc_c, self)
 
-    def get_model(self, doppler_opts):
+    def _get_model(self, doppler_opts):
+        """ Returns the specified model for the Radio Channel.
+        """
         if self.model_type == "cost207":
             import winelo.channel.models.cost207 as cost207
             try:
@@ -31,7 +47,9 @@ class gauss_rand_proc_c(gr.hier_block2):
 
         return model
 
-    def get_gauss_rand_proc_c(self):
+    def _get_gauss_rand_proc_c(self):
+        """ Returns the Gaussian random process.
+        """
         spec_getter = getattr( self.model, 'get_' + self.spec_type)
         if self.spec_type in self.model.specs_odd:
             from winelo.channel import spec2soc

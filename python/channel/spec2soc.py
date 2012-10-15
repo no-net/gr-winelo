@@ -1,14 +1,24 @@
-#!/usr/bin/python
 import numpy as np
 
 class spec2soc():
     """
-    The Sum-of-Sinusoids method can only be used for symmetric doppler spectra.
-    See Paetzold p. 104.
     The Sum-of-Cisoids method is better suited for non-symmetric Doppler
     Spectra. Paetzold p126
     """
     def __init__(self, spec, N=10, method='gmea'):
+        """
+        Parameters:
+
+        spec: tuple( freqs, spectrum )
+            power spectrum density as produced by the cost207 module
+        N : int
+            number of sinusoids
+        method : string
+            method used to compute gains and frequencies
+            med: method of equal distances
+            mea: method of equal area
+
+        """
         self.N = N
         self.spec = spec
         self.methodhandler = {
@@ -17,8 +27,9 @@ class spec2soc():
                 }
         self.methodhandler[method]()
 
-    # General Method of Equal Areas, Paetzold p 225
     def gmea(self):
+        """ General Method of Equal Areas, [paetzold2011mobile]_ p. 225.
+        """
         P_S = np.cumsum(self.spec[1])
         # sigma squared is equal to the integral over the Doppler spectrum.
         # Therefor it is also equal to the last element of the cumulative sum
@@ -35,11 +46,12 @@ class spec2soc():
         spec_soc = np.array( [float(1)/self.N]*self.N)
         self.soc = zip(freqs_soc, spec_soc)
 
-    # Method of Equal Distance. Paetzold p 151
-    # in Paetzold it is only described for sum of sinusoids but I think it is
-    # also applicable to sum of cisoids
     def med(self):
-        N = self.N
+        """ Method of Equal Distances [paetzold2011mobile]_ p. 151.
+        The method of equal distances is only described for sum of sinusoids but I think it is
+        also applicable to the sum of cisoids approach.
+
+        """
         fstart = min(self.spec[0])
         fend = max(self.spec[0])
         # initial bins
