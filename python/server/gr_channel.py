@@ -1,7 +1,8 @@
 from gnuradio import gr
 
-class channel_model():
-    """ Tears down and rebuilds the flowgraph """
+class gr_channel():
+    """ Models the radio channel between all transmitters and receivers.
+    """
 
     def __init__(self, txs, rxs):
         self.tb = gr.top_block()
@@ -10,6 +11,8 @@ class channel_model():
         self.rxs = rxs
 
     def teardown_channel(self):
+        """ Tears down the channel after a client connected or disconnected.
+        """
         tb = self.tb
         tb.stop()
         print 'GNU Radio flowgraph stopped'
@@ -28,6 +31,9 @@ class channel_model():
             tx.kill = False
 
     def rebuild_channel(self):
+        """ Rebuilds the channel after it was torn down.
+        """
+
         tb = self.tb
         rxs = self.rxs
         txs = self.txs

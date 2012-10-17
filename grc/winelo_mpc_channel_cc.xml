@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <block>
-	<name>mpc_channel_cc</name>
+	<name>Multipath Channel</name>
 	<key>winelo_mpc_channel_cc</key>
 	<category>WiNeLo</category>
 	<import>import winelo</import>
@@ -36,4 +36,5 @@
 Models a radio channel with numerous multipath components. The 0th input stream is the signal coming from the transmitter.
 All the other input streams are Gaussian random processes (GRP), where a GRP models the behaviour of all multipath components with an identical delay. The Taps Delays define the difference in delays between the GRP and the power delay profile sets the amplitude of each GRP.
 The taps delays are defined in samples and therefore have to be integer values.
+</doc>
 </block>

@@ -7,6 +7,8 @@ import struct
 from twisted.internet import reactor
 
 class gr2tw_c(gr.block):
+    """ Interface from GNU Radio to Twisted.
+    """
 
     def __init__(self, twisted_conn):
         gr.block.__init__(

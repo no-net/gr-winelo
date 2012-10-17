@@ -7,6 +7,8 @@ from twisted.internet import reactor
 import time
 
 class tw2gr_c(gr.block):
+    """ Interface from Twisted to GNU Radio.
+    """
 
     def __init__(self, twisted_conn):
         gr.block.__init__(

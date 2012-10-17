@@ -1,20 +1,19 @@
-#!/usr/bin/python
 import numpy as np
 
 class dopplerspecs():
-    """ computes the Doppler spectra defined by the COST207 model
-
-    Parameters
-    ----------
-
-    N : int
-        size of the spectrum array that is returned
-    fmax : int, float
-        maximum Doppler frequency
-
+    """ Computes the Doppler spectra defined by the COST207 model.
     """
 
     def __init__(self, N, fmax):
+        """ Parameters:
+
+        N : int
+            size of the spectrum array that is returned
+        fmax : int, float
+            maximum Doppler frequency
+
+        """
+
         self.N = N
         self.fmax = fmax
         self.A_1 = 50/( np.sqrt( 2*np.pi ) * 3 * self.fmax )
@@ -69,18 +68,23 @@ class dopplerspecs():
         return psd
 
     def get_jakes(self):
+        """ Returns the Jakes PSD. """
         return (self.freqs, self._gen_jakes() )
 
     def get_gauss1(self):
+        """ Returns the Gauss 1 PSD. """
         return (self.freqs, self._gen_gauss1() )
 
     def get_gauss2(self):
+        """ Returns the Gauss 2 PSD. """
         return (self.freqs, self._gen_gauss2() )
 
     def get_rice(self):
+        """ Returns the Rice PSD. """
         return (self.freqs, self._gen_rice() )
 
     def plot_jakes(self):
+        """ Plots the Jakes PSD. """
         import pylab as plt
         plt.plot(self.freqs, self._gen_jakes())
         plt.xlabel(r'$f$ in Hz')
@@ -88,6 +92,7 @@ class dopplerspecs():
         plt.show()
 
     def plot_gauss1(self):
+        """ Plots the Gauss 1 PSD. """
         import pylab as plt
         plt.plot(self.freqs, self._gen_gauss1())
         plt.xlabel(r'$f$ in Hz')
@@ -95,6 +100,7 @@ class dopplerspecs():
         plt.show()
 
     def plot_gauss2(self):
+        """ Plots the Gauss 2 PSD. """
         import pylab as plt
         plt.plot(self.freqs, self._gen_gauss2())
         plt.xlabel(r'$f$ in Hz')
@@ -102,6 +108,7 @@ class dopplerspecs():
         plt.show()
 
     def plot_rice(self):
+        """ Plots the Rice PSD. """
         import pylab as plt
         plt.plot(self.freqs, self._gen_rice())
         plt.xlabel(r'$f$ in Hz')

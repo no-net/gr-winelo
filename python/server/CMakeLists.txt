@@ -4,6 +4,6 @@ install (FILES
 	__init__.py
 	tw2gr_c.py
 	gr2tw_c.py
-	grchannel.py
+	gr_channel.py
 	DESTINATION ${GR_PYTHON_DIR}/winelo/server
 )

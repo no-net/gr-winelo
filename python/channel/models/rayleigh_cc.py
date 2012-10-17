@@ -2,7 +2,19 @@ from gnuradio import gr
 from winelo.channel.gauss_rand_proc_c import gauss_rand_proc_c
 
 class rayleigh_cc(gr.hier_block2):
+    """ A GNU Radio block which models a Rayleigh channel with a Jakes PSD.
+    """
+
     def __init__(self, sample_rate, fmax):
+        """
+        Paramters:
+
+            sample_rate: int or float
+            fmax: int or float
+                 maximum Doppler shift of the Jakes PSD.
+
+        """
+
         gr.hier_block2.__init__(self, "Rayleigh Channel",
             gr.io_signature(1, 1, gr.sizeof_gr_complex),
             gr.io_signature(1, 1, gr.sizeof_gr_complex))

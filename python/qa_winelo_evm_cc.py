@@ -36,7 +36,7 @@ class qa_evm_cc (gr_unittest.TestCase):
         expected_result = (12./5, 4)
         src0 = gr.vector_source_c(src_data0)
         src1 = gr.vector_source_c(src_data1)
-        evm = winelo_swig.evm_cc(win_size = 5)
+        evm = winelo_swig.evm_cc(vector_length = 5)
         sink = gr.vector_sink_f()
         # set up fg
         self.tb.connect(src0, (evm, 0))

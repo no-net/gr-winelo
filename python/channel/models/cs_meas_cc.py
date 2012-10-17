@@ -3,6 +3,9 @@ from winelo import mpc_channel_cc
 import pickle
 
 class cs_meas_cc(gr.hier_block2):
+    """ A GNU Radio block that uses a channel sounder measurement for modelling
+    a channel.
+    """
     def __init__(self, sample_rate, filename):
         gr.hier_block2.__init__(self, "Channel Sounder Measurement",
             gr.io_signature(1, 1, gr.sizeof_gr_complex),

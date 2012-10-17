@@ -335,7 +335,7 @@ class SyncFactory(ServerFactory):
         self.tic = time.time()
         self.args = args
         self.clients = { 'tx':[], 'rx':[] }
-        self.channel = winelo.server.grchannel.channel_model(
+        self.channel = winelo.server.gr_channel(
             self.clients['tx'],
             self.clients['rx']
             )
@@ -390,7 +390,7 @@ def main():
                     formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument( '--model', '-M', action='store',
         dest='model', nargs='?',
-        help='name of the channel model to be used. Must be one of the following:\n' + '\n'.join(channel_models.keys()))
+        help='name of the channel model to be used. Available models are:\n' + '\n'.join(channel_models.keys()))
     parser.add_argument( '--opts', '-O', action='store',
         dest='opts', nargs='*', help='channel model parameters. Something like:\n[sample_rate 32000 fmax 100] or [k 1]')
     parser.add_argument( '--port', '-P', type=int, action='store',

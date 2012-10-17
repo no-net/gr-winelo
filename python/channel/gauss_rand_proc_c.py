@@ -1,18 +1,27 @@
 from gnuradio import gr
 
 class gauss_rand_proc_c(gr.hier_block2):
-    """ GNU radio Block that models a complex Gaussian Random Process.
+    """ GNU radio block that models a complex Gaussian random process.
     """
 
     def __init__(self, sample_rate, spec_type, method, N, doppler_opts):
         """
         Parameters:
 
-        sample_rate: sample_rate of the flowgraph
-        spec_type: type of the spectrum. Must be something like cost207:jakes
-        method: method used to create the sum of sinusoids/cisoids
-        N: number of sinusoids/cisoids
-        doppler_opts: options for the Doppler spectrum
+        sample_rate: int or float
+            sample_rate of the flowgraph
+
+        spec_type: string
+            type of the spectrum. Must be something like cost207:jakes
+
+        method: string
+            method used to create the sum of sinusoids/cisoids
+
+        N: int
+            number of sinusoids/cisoids
+
+        doppler_opts: Dictionary
+            options for the Doppler spectrum
 
         """
 

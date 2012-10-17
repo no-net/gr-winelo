@@ -1,4 +1,4 @@
-""" COST 207 Radio Channel Models """
+""" This module contains GNU Radio blocks and methods for the COST 207 Radio Channel Models """
 from dopplerspecs import dopplerspecs
 import rural_area_cc
 import typical_urban_cc

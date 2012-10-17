@@ -3,8 +3,10 @@ from winelo import mpc_channel_cc
 from winelo.channel import gauss_rand_proc_c
 
 class paths_6(gr.hier_block2):
+    """ A GNU Radio block for the COST 207 Typical Urban model with 6 paths.
+    """
     def __init__(self, sample_rate, fmax):
-        gr.hier_block2.__init__(self, "Complex Gaussian Random Process",
+        gr.hier_block2.__init__(self, "COST207 Typical Urban 6 paths",
             gr.io_signature(1, 1, gr.sizeof_gr_complex),
             gr.io_signature(1, 1, gr.sizeof_gr_complex))
 
