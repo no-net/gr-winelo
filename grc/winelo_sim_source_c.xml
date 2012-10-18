@@ -5,7 +5,7 @@
 ###################################################
  -->
 <block>
-	<name>Sim Source C</name>
+	<name>WiNeLo Source</name>
 	<key>winelo_source</key>
 	<category>WiNeLo</category>
 	<import>from winelo.client import sim_source_c</import>

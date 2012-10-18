@@ -5,7 +5,7 @@
 ###################################################
  -->
 <block>
-	<name>Sim Sink C</name>
+	<name>WiNeLo Sink</name>
 	<key>winelo_sim</key>
 	<category>WiNeLo</category>
 	<import>from winelo.client import sim_sink_c</import>

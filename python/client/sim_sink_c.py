@@ -14,7 +14,7 @@ class sim_sink_c(gr.block):
                 clientindex, packetsize, startreactor):
         gr.block.__init__(
             self,
-            name = "WINELO-Simulation Sink",
+            name = "WiNeLo sink",
             in_sig = [numpy.complex64],
             out_sig = None,
         )

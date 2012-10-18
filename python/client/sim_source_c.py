@@ -14,7 +14,7 @@ class sim_source_c(gr.block):
                 clientindex, packetsize, startreactor):
         gr.block.__init__(
             self,
-            name = "WINELO-Simulation Source",
+            name = "WiNeLo source",
             in_sig = None,
             out_sig = [numpy.complex64],
         )
