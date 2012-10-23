@@ -77,6 +77,12 @@ winelo_mpc_channel_cc::winelo_mpc_channel_cc (const std::vector<int> &taps_delay
 	}
 	set_history(max);
 
+	// convert the power delay profile to amplitudes
+	for(int i = 0; i < d_pdp.size(); i++)
+	{
+		d_pdp[i] = sqrt(d_pdp[i]);
+	}
+
 	const int alignment_multiple = volk_get_alignment() / sizeof(gr_complex);
 	set_alignment(std::max(1,alignment_multiple));
 }

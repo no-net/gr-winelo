@@ -3,7 +3,7 @@
 	<name>COST207 Hilly Terrain 6Paths</name>
 	<key>winelo_cost207_hilly_terrain_6paths</key>
 	<category>WiNeLo</category>
-	<import>from winelo.channel.cost207 import hilly_terrain_cc</import>
+	<import>from winelo.channel.models.cost207 import hilly_terrain_cc</import>
 	<make>hilly_terrain_cc.paths_6($sample_rate, $fmax)</make>
 	<param>
 		<name>sample rate</name>

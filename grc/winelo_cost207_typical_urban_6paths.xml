@@ -3,7 +3,7 @@
 	<name>COST207 Typical Urban 6Paths</name>
 	<key>winelo_cost207_typical_urban_6paths</key>
 	<category>WiNeLo</category>
-	<import>from winelo.channel.cost207 import typical_urban_cc</import>
+	<import>from winelo.channel.models.cost207 import typical_urban_cc</import>
 	<make>typical_urban_cc.paths_6($sample_rate, $fmax)</make>
 	<param>
 		<name>sample rate</name>

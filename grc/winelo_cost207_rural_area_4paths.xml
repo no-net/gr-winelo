@@ -3,7 +3,7 @@
 	<name>COST207 Rural Area 4Path</name>
 	<key>winelo_cost207_rural_area_4path</key>
 	<category>WiNeLo</category>
-	<import>from winelo.channel.cost207 import rural_area_cc</import>
+	<import>from winelo.channel.models.cost207 import rural_area_cc</import>
 	<make>rural_area_cc.paths_4($sample_rate, $fmax)</make>
 	<param>
 		<name>sample rate</name>
