@@ -31,11 +31,14 @@ Channel Sounder Measurement
 ---------------------------
 .. automodule:: winelo.channel.models.cs_meas_cc
         :members:
+        :special-members:
 
 Rayleigh Channel
 ----------------
 .. automodule:: winelo.channel.models.rayleigh_cc
         :members:
+        :special-members:
+
 
 COST 207
 --------
@@ -50,21 +53,25 @@ Rural Area
 ++++++++++
 .. automodule:: winelo.channel.models.cost207.rural_area_cc
         :members:
+        :special-members:
 
 Typical Urban
 +++++++++++++
 .. automodule:: winelo.channel.models.cost207.typical_urban_cc
         :members:
+        :special-members:
 
 Bad Urban
 +++++++++
 .. automodule:: winelo.channel.models.cost207.bad_urban_cc
         :members:
+        :special-members:
 
 Hilly Terrain
 +++++++++++++
 .. automodule:: winelo.channel.models.cost207.hilly_terrain_cc
         :members:
+        :special-members:
 
 
 .. _`channel_example`:
