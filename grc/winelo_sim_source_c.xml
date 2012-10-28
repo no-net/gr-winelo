@@ -57,4 +57,17 @@
 		<name>out</name>
 		<type>complex</type>
 	</source>
+<doc>
+Server IP: IP of the server. If the clients are running on the same machine as the server just use 127.0.0.1, which is the default value.
+
+Server Port: Port under which the WiNeLo-Server is accessible. If you did not specify the port while starting the server, the default port 8888 is used.
+
+Client Name: Name of the Client. Needs to be unique.
+
+Client Index: Deprecated. Leave the default value.
+
+Packet Size: How many samples are passed to the server before waiting for a new request. If the connected clients have different packet sizes the lowest will be used. This parameter is important for synchronisation of the clients. I noticed that WiNeLo gets unstable if the packet size is larger than 4000.
+
+Start Reactor: This one is a little complicated. WiNeLo relies on twisted for transmitting samples. The twisted reactor checks for incoming and outgoing traffic and must not be started more than once per thread, meaning that if we want to have multiple WiNeLo sinks or sources in one GNU Radio flowgraph only the one that is instantiated the latest can start the reactor. This requires a little tuning by hand.
+</doc>
 </block>

@@ -24,6 +24,9 @@ class spec2sos():
         self.N = N
         self.sos = {}
         self.psd = psd
+        # normalize the psd of easier computation
+        self.psd_norm = (self.psd[0], self.psd[1]/np.sum(self.psd[1]) )
+        
         self.methodhandler = {
                 'med':self.med,
                 'mea':self.mea
@@ -49,15 +52,14 @@ class spec2sos():
         for idx, f in enumerate(freqs_sos):
             idx_temp = np.logical_and( self.psd[0] >= f-delta_f/2, self.psd[0] <= f+delta_f/2 )
             freqs_temp = self.psd[0][idx_temp]
-            coeff_temp = self.psd[1][idx_temp]
-            coeffs[idx] = np.trapz( coeff_temp, freqs_temp )
+            coeff_temp = self.psd_norm[1][idx_temp]
+            coeffs[idx] = 2*np.sqrt(sum(coeff_temp))
 
-        coeffs = np.divide( coeffs, np.sum(coeffs) )
         self.sos = zip(freqs_sos, coeffs )
 
     def mea(self):
         """ Method of Equal Areas [paetzold2011mobile]_ p. 162. """
-        G = np.cumsum(self.psd[1])
+        G = np.cumsum(self.psd_norm[1])
         sigma_squared = G[-1]
         n_bin = np.arange(1, self.N + 1, dtype=float)
         n_bin = sigma_squared/2*(1 + n_bin/len(n_bin))
@@ -65,10 +67,10 @@ class spec2sos():
         for idx, n in enumerate(n_bin):
             min_dist = min( np.abs(G - n) )
             index = np.where( (np.abs(G - n) - min_dist) == 0)[0][0]
-            freqs_sos[idx] = self.psd[0][index]
-        coeffs = np.array( [2*np.sqrt(sigma_squared)]*self.N)
+            freqs_sos[idx] = self.psd_norm[0][index]
+        coeffs = np.array( [np.sqrt(sigma_squared*2./self.N)]*self.N)
         # normalize to one
-        coeffs = np.divide( coeffs, np.sum(coeffs) )
+        # coeffs = np.divide( coeffs, np.sum(coeffs) )
         self.sos = zip(freqs_sos, coeffs)
 
     def get_sos(self):
@@ -81,6 +83,8 @@ class spec2sos():
         """ Plots the original Spectrum and the sum of sinusoids.
         """
 
+        import matplotlib as mp
+        mp.rc('font', family='serif', size=22)
         import pylab as plt
         freqs = [ f[0] for f in self.sos ]
         negfreqs = [ -f[0] for f in self.sos ]

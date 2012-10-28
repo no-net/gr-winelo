@@ -41,7 +41,7 @@ With **opts** parameters are passed to the GNU Radio model block.
 The rest of the arguments should be self-explanatory.
 For example, if a rayleigh channel is to be modelled, we start the server with the following command:::
 
-        ./server --model rayleigh --opts [sample_rate 32000 fmax 100]
+        ./server --model rayleigh --opts sample_rate 32000 fmax 100
 
 GNU Radio Server flowgraph
 ==========================
