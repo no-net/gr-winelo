@@ -16,9 +16,9 @@ class spec2sos():
         N : int
             number of sinusoids
         method : string
-            method used to compute gains and frequencies
-            med: method of equal distances
-            mea: method of equal area
+            method used to compute gains and frequencies:
+                | med: method of equal distances
+                | mea: method of equal area
 
         """
         self.N = N

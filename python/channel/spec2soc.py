@@ -2,7 +2,7 @@ import numpy as np
 
 class spec2soc():
     """
-    Computes a Sum-of-Cisoids from a given power spectral density.
+    Computes a sum of cisoids from a given power spectral density.
     The Sum-of-Cisoids method is better suited for non-symmetric Doppler
     Spectra [paetzold2011mobile]_ p. 126.
     """
@@ -12,12 +12,12 @@ class spec2soc():
 
         psd: tuple( freqs, spectrum )
             power spectrum density as produced by the cost207 module
-        N : int
+        N: int
             number of sinusoids
-        method : string
+        method: string
             method used to compute gains and frequencies
-            med: method of equal distances
-            mea: method of equal area
+                | med: method of equal distances
+                | mea: method of equal area
 
         """
         self.N = N
@@ -81,7 +81,7 @@ class spec2soc():
         return self.soc
 
     def plot_spectra(self):
-        """ Plots the original Spectrum and the sum of cisoids.
+        """ Plots the original spectrum and the sum of cisoids.
         """
 
         import pylab as plt

@@ -4,7 +4,7 @@ Radio Channels
 **************
 .. automodule:: winelo.channel
 
-An example detailing the use of this module can be found below. :ref:`channel_example`
+An example detailing the use of this module can be found below (:ref:`channel_example`).
 
 Sum of Sinusoids
 ================
@@ -79,14 +79,14 @@ Hilly Terrain
 Creating a sum of sinusoids/cisoids
 ===================================
 To create a sum of sinusoids/cisoids we first need a Doppler spectrum.
-So far only the Doppler spectra from the COST 207 models are implemented.
-We start by creating an instance of the COST 207 models::
+So far only the Doppler spectra of the COST 207 models are implemented.
+We start by creating an instance of the COST 207 models:::
 
 	from winelo.channel.models import cost207
 	myspecs = cost207.dopplerspecs(N = 2001, fmax = 100)
 	gauss1 = myspecs.get_gauss1()
 
-where *N* is the number of points where the Doppler spectra are evaluated and *fmax* is the maximum Doppler shift.
+Where *N* is the number of points where the Doppler spectra are evaluated and *fmax* is the maximum Doppler shift.
 The various spectra can then be extracted with the *get_gauss1*, *get_gauss2*, *get_jakes* and *get_rice* methods.
 They return a tuple which contains two NumPy arrays: a :math:`N \times 1` array containing frequencies that are evenly spread from *-fmax* and *fmax*, and also a :math:`N \times 1` array which contains the power of the Doppler spectrum at these frequencies.
 
@@ -96,13 +96,13 @@ Since the Gauss1 spectrum of the COST 207 model is uneven, we will be using the 
 	from winelo.channel import spec2soc
 	gauss1_soc = spec2soc( gauss1, N=10, method='gmea')
 
-here *N* is the number of cisoids that we want to use, and *gmea* stands for generalized methods of equal areas which is used to compute the frequencies and amplitudes of the cisoids, given the spectrum *gauss1*.
+Here *N* is the number of cisoids that we want to use, and *gmea* stands for generalized methods of equal areas which is used to compute the frequencies and amplitudes of the cisoids, given the spectrum *gauss1*.
 
-Let's have a look at our sum of cisoids and how it relates to the Doppler spectrum supplied by the COST 207 methods::
+Let's have a look at our sum of cisoids and how it relates to the Doppler spectrum supplied by the COST 207 methods:::
 
 	gauss1_soc.plot_spectra()
 
-which gives us the following plot:
+Which gives us the following plot:
 
 .. figure::  images/soc_and_spec.png
         :align:   center
@@ -110,10 +110,4 @@ which gives us the following plot:
 
 	Sum of Cisoids and its spectrum
 
-we can get the actual sum of cisoids with the method *gauss1_soc.get_soc()*, which returns a list of *N* tuples, where each tuple is a pair of the frequency and the amplitude of one cisoid.
-
-References
-==========
-
-.. [paetzold2011mobile] M. Pätzold, Mobile Radio Channels, John Wiley & Sons, 2011.
-
+We can get the actual sum of cisoids with the method *gauss1_soc.get_soc()*, which returns a list of *N* tuples, where each tuple is a pair of the frequency and the amplitude of one cisoid.

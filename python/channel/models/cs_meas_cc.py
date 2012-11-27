@@ -16,7 +16,6 @@ class cs_meas_cc(gr.hier_block2):
         filename: string
             file containing the channel model
 
-        
         Notes:
             The modelfile was created with the pickle module and contains a list
             of sum of cisoids, each sum of cisoids models the Doppler spectrum

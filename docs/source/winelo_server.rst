@@ -35,11 +35,11 @@ If you want to run a winelo server just execute **apps/server.py**::
                                 How many samples a package will contain
 
 The models are GNU Radio blocks from :mod:`winelo.channel.models.cs_meas_cc`, :mod:`winelo.channel.models.rayleigh_cc`,
-:mod:`winelo.channel.models.cost207` or the standard gnuradio library.
+:mod:`winelo.channel.models.cost207` or the standard GNU Radio library.
 They are stored in a Python dictionary and are accessed via their respective keys.
 With **opts** parameters are passed to the GNU Radio model block.
 The rest of the arguments should be self-explanatory.
-For example, if a rayleigh channel is to be modelled, we start the server with the following command:::
+For example, if a Rayleigh channel is to be modelled, we start the server with the following command:::
 
         ./server --model rayleigh --opts sample_rate 32000 fmax 100
 

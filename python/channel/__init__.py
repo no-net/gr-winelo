@@ -1,5 +1,5 @@
 """ This module includes radio channel models and routines to create a sum of
-sinusoids or a sum of cisoids """
+sinusoids or a sum of cisoids. """
 # sum of sinusoids
 from spec2sos import spec2sos
 # sum of cisoids
