@@ -1,4 +1,5 @@
 from gnuradio import gr
+from numpy.random import randint
 
 class gauss_rand_proc_c(gr.hier_block2):
     """ GNU radio block that models a complex Gaussian random process.
@@ -67,7 +68,7 @@ class gauss_rand_proc_c(gr.hier_block2):
             adder = gr.add_cc()
             for idx, (freq, ampl) in enumerate(soc.get_soc()):
                 sources.append( gr.sig_source_c (self.sample_rate, gr.GR_COS_WAVE, freq, ampl) )
-                self.connect( sources[idx], ( adder, idx ) )
+                self.connect( sources[idx], gr.skiphead(gr.sizeof_gr_complex, randint(low=0, high=self.sample_rate)), ( adder, idx ) )
             return adder
         elif self.spec_type in self.model.specs_even:
             from winelo.channel import spec2sos
@@ -77,14 +78,14 @@ class gauss_rand_proc_c(gr.hier_block2):
             adder_real = gr.add_ff()
             for idx, (freq, ampl) in enumerate(sos_real.get_sos()):
                 sources_real.append( gr.sig_source_f (self.sample_rate, gr.GR_COS_WAVE, freq, ampl) )
-                self.connect( sources_real[idx], ( adder_real, idx ) )
+                self.connect( sources_real[idx], gr.skiphead(gr.sizeof_float, randint(low=0, high=self.sample_rate)), ( adder_real, idx ) )
             # imaginary part of the gaussian random process
             sos_imaginary = spec2sos( spec_getter(), method = self.method, N = self.N+1 )
             sources_imag = []
             adder_imag = gr.add_ff()
             for idx, (freq, ampl) in enumerate(sos_imaginary.get_sos()):
                 sources_imag.append( gr.sig_source_f (self.sample_rate, gr.GR_COS_WAVE, freq, ampl) )
-                self.connect( sources_imag[idx], ( adder_imag, idx ) )
+                self.connect( sources_imag[idx], gr.skiphead(gr.sizeof_float, randint(low=0, high=self.sample_rate)), ( adder_imag, idx ) )
             float2complex = gr.float_to_complex()
             self.connect(adder_real, (float2complex, 0))
             self.connect(adder_imag, (float2complex, 1))

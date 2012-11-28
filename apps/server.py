@@ -382,6 +382,7 @@ def main():
             'cost207badurban':winelo.channel.models.cost207.bad_urban_cc.paths_6,
             'cost207hillyterrain':winelo.channel.models.cost207.hilly_terrain_cc.paths_6,
             'cost207typicalurban':winelo.channel.models.cost207.typical_urban_cc.paths_6,
+            'cost207typicalurban12':winelo.channel.models.cost207.typical_urban_cc.paths_12,
             'cost207ruralarea':winelo.channel.models.cost207.rural_area_cc.paths_4,
             }
 
