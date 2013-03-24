@@ -16,7 +16,7 @@ class sim_sink_c(gr.block):
             self,
             name = "WiNeLo sink",
             in_sig = [numpy.complex64],
-            out_sig = None,
+            out_sig = [numpy.complex64],
         )
         print 'Instantiating %s' % clientname
         # counter that keeps track of the number of requested samples
@@ -44,15 +44,16 @@ class sim_sink_c(gr.block):
             n_requested_samples = self.n_requested_samples
             if n_requested_samples is 0:
                 self.twisted_conn.condition.wait()
+                #break
             elif n_requested_samples < len(input_items[0]):
-                requested_samples = input_items[0][0:n_requested_samples]
+                output_items[0] = input_items[0][0:n_requested_samples]
                 break
             else:
-                requested_samples = input_items[0]
+                output_items[0] = input_items[0]
                 break
-        n_processed = len(requested_samples)
+        n_processed = len(output_items[0])
         self.n_requested_samples -= n_processed
-        self.twisted_conn.sendSamples(requested_samples)
+        #self.twisted_conn.sendSamples(requested_samples)
         self.twisted_conn.condition.release()
         return n_processed
 

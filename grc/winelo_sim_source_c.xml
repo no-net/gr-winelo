@@ -52,7 +52,11 @@
 			<name>No</name>
 			<key>False</key>
 		</option>
-	</param>
+    </param>
+    <sink>
+		<name>in</name>
+		<type>complex</type>
+	</sink>
 	<source>
 		<name>out</name>
 		<type>complex</type>

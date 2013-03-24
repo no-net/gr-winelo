@@ -99,25 +99,15 @@ class SendStuff(Protocol):
         self.condition.notify()
         self.condition.release()
 
-    def samplesReceived(self, data):
+    def samplesReceived(self):
         """
         Called when the header checked out to be data
         """
-        sample_start = 0
-        ctr = 0
-        samples = numpy.zeros(self.packet_size, dtype = complex)
-        while(sample_start < len(data)):
-            realpart = struct.unpack('f', data[sample_start:sample_start + 4])[0]
-            imagpart = struct.unpack('f', data[sample_start+4:sample_start + 8])[0]
-            samples[ctr] = numpy.complex(realpart, imagpart)
-            sample_start += 8
-            ctr += 1
-
-        self.condition.acquire()
-        self.flowgraph.new_samples_received(samples)
-        self.transport.write('ackEOHdummyEOP')
-        self.condition.notify()
-        self.condition.release()
+        #self.condition.acquire()
+        #self.flowgraph.new_samples_received(samples)
+        reactor.callFromThread(self.transport.write, 'ackEOHdummyEOP')
+        #self.condition.notify()
+        #self.condition.release()
 
     def sendSamples(self, samples):
         msg = ''

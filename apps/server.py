@@ -33,6 +33,7 @@ import threading
 
 import struct
 
+
 class Sync(Protocol):
     """
     Custom protocol that handles the communication with a connected client.
@@ -132,7 +133,7 @@ class Sync(Protocol):
         # Request new samples from all connected transmitters, since no new
         # samples were requested while the channel flowgraph was shutting down.
         for tx in self.factory.clients['tx']:
-            reactor.callWhenRunning( tx.reqData, tx.factory.packet_size)
+            reactor.callWhenRunning(tx.reqData, tx.factory.packet_size)
 
     def dataReceived(self, recvdata):
         """
@@ -145,19 +146,19 @@ class Sync(Protocol):
         EOH: End Of Header
         EOP: End Of Packet
         """
-        handleheaders = {   'name': self.setName,
-                            'type': self.setType,
-                            'data': self.samplesReceived,
-                            'packet_size': self.setPacketSize,
-                            'ack': self.handleAck,
-                        }
+        handleheaders = {'name': self.setName,
+                         'type': self.setType,
+                         'data': self.samplesReceived,
+                         'packet_size': self.setPacketSize,
+                         'ack': self.handleAck,
+                         }
 
         # join the new received data with the old unprocessed data
         self.data = self.data + recvdata
 
-	    # get the first header of the data stream
+        # get the first header of the data stream
         try:
-            header, rest = self.data.split('EOH',1)
+            header, rest = self.data.split('EOH', 1)
         except ValueError:
             print 'Could not extract a complete header'
             print 'waiting for further data'
@@ -169,16 +170,16 @@ class Sync(Protocol):
             # if samples were transmitted we can't use EOP since the data
             # stream might contain the same sequence. Therefore we have to
             # resort to the lenght of a packet to find its end
-            if len(rest)>=(self.factory.packet_size*8+3):
-                payload = rest[:self.factory.packet_size*8]
+            if len(rest) >= (self.factory.packet_size * 8 + 3):
+                payload = rest[:self.factory.packet_size * 8]
                 # the +3 removes the EOP flag from the data
-                self.data = rest[self.factory.packet_size*8+3:]
+                self.data = rest[self.factory.packet_size * 8 + 3:]
             else:
                 return None
         # Take care of all other headers.
         else:
             try:
-                payload, self.data = rest.split('EOP',1)
+                payload, self.data = rest.split('EOP', 1)
             except ValueError:
                 return None
 
@@ -205,9 +206,9 @@ class Sync(Protocol):
         """
         self.info['type'] = clienttype
         if clienttype == 'tx':
-            self.info['block'] = winelo.server.tw2gr_c(self)
+            self.info['block'] = winelo.server.tw2gr_c(self, "127.0.0.1", 8888)
         else:
-            self.info['block'] = winelo.server.gr2tw_c(self)
+            self.info['block'] = winelo.server.gr2tw_c(self, "127.0.0.1", 8889)
 
     def setName(self, name):
         """
@@ -244,8 +245,8 @@ class Sync(Protocol):
         for tx in self.factory.clients['tx']:
             # new tx blocks are needed, otherwise I always received too many
             # acks. Maybe some samples were still in the flowgraph
-            tx.info['block'] = None
-            tx.info['block'] = winelo.server.tw2gr_c(tx)
+            #tx.info['block'] = None
+            #tx.info['block'] = winelo.server.tw2gr_c(tx, "127.0.0.1", 8888)
             # Create a channel for each receiver, pass if a channel already
             # exists.
             for rx in self.factory.clients['rx']:
@@ -264,7 +265,7 @@ class Sync(Protocol):
         # Request new samples from all connected transmitters, since no new
         # samples were requested while the channel flowgraph was shutting down.
         for tx in self.factory.clients['tx']:
-            reactor.callWhenRunning( tx.reqData, self.factory.packet_size)
+            reactor.callWhenRunning(tx.reqData, self.factory.packet_size)
 
     def handleAck(self, dummy):
         """
@@ -276,12 +277,11 @@ class Sync(Protocol):
         all_acks_received = False not in [rx.ack_received for rx in self.factory.clients['rx']]
         # if all acks have been received and no client is currently connecting
         # or disconnecting request new data from all transmitters
-        if all_acks_received  and not ( self.factory.connect_in_process or self.factory.disconnect_in_process ):
+        if all_acks_received and not (self.factory.connect_in_process or self.factory.disconnect_in_process):
             for tx in self.factory.clients['tx']:
                 reactor.callWhenRunning(tx.reqData, tx.factory.packet_size)
             for rx in self.factory.clients['rx']:
                 rx.ack_received = False
-
 
     def __str__(self):
         """
@@ -289,7 +289,7 @@ class Sync(Protocol):
         meaningful
         """
         return 'Client \"%s\" is of type \"%s\" and supports a maximum packet size of \"%i\" ' % (
-            self.info['name'], self.info['type'], self.info['packet_size'] )
+            self.info['name'], self.info['type'], self.info['packet_size'])
 
     def samplesReceived(self, data):
         """
@@ -301,7 +301,7 @@ class Sync(Protocol):
         sample_counter = 0
         while(sample_start < len(data)):
             realpart = struct.unpack('f', data[sample_start:sample_start + 4])[0]
-            imagpart = struct.unpack('f', data[sample_start+4:sample_start + 8])[0]
+            imagpart = struct.unpack('f', data[sample_start + 4:sample_start + 8])[0]
             self.samples[sample_counter] = numpy.complex(realpart, imagpart)
             sample_start += 8
             sample_counter += 1
@@ -334,11 +334,10 @@ class SyncFactory(ServerFactory):
         """
         self.tic = time.time()
         self.args = args
-        self.clients = { 'tx':[], 'rx':[] }
-        self.channel = winelo.server.gr_channel(
-            self.clients['tx'],
-            self.clients['rx']
-            )
+        self.clients = {'tx': [], 'rx': []}
+        self.channel = winelo.server.gr_channel(self.clients['tx'],
+                                                self.clients['rx']
+                                                )
         self.channel_model = channel_model
         self.packet_size = self.args.packetsize
         # Size of one element in packet --> numpy.complex
@@ -369,6 +368,7 @@ class SyncFactory(ServerFactory):
             rx.transport.write('packetsizeEOH%iEOP' % self.packet_size)
         print 'updated packet_size:', self.packet_size
 
+
 def main():
     """
     Setup a server, listening on the specified port and waiting for clients to
@@ -376,35 +376,34 @@ def main():
     """
 
     channel_models = {
-            'const':gr.multiply_const_cc,
-            'rayleigh':winelo.channel.models.rayleigh_cc,
-            'cs_meas':winelo.channel.models.cs_meas_cc,
-            'cost207badurban':winelo.channel.models.cost207.bad_urban_cc.paths_6,
-            'cost207hillyterrain':winelo.channel.models.cost207.hilly_terrain_cc.paths_6,
-            'cost207typicalurban':winelo.channel.models.cost207.typical_urban_cc.paths_6,
-            'cost207typicalurban12':winelo.channel.models.cost207.typical_urban_cc.paths_12,
-            'cost207ruralarea':winelo.channel.models.cost207.rural_area_cc.paths_4,
-            }
+        'const': gr.multiply_const_cc,
+        'rayleigh': winelo.channel.models.rayleigh_cc,
+        'cs_meas': winelo.channel.models.cs_meas_cc,
+        'cost207badurban': winelo.channel.models.cost207.bad_urban_cc.paths_6,
+        'cost207hillyterrain': winelo.channel.models.cost207.hilly_terrain_cc.paths_6,
+        'cost207typicalurban': winelo.channel.models.cost207.typical_urban_cc.paths_6,
+        'cost207typicalurban12': winelo.channel.models.cost207.typical_urban_cc.paths_12,
+        'cost207ruralarea': winelo.channel.models.cost207.rural_area_cc.paths_4}
 
     parser = argparse.ArgumentParser(
         description='Starts the gnuradio-channel-simmulation server GRCSS.',
                     formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument( '--model', '-M', action='store',
-        dest='model', nargs='?',
-        help='name of the channel model to be used. Available models are:\n' + '\n'.join(channel_models.keys()))
-    parser.add_argument( '--opts', '-O', action='store',
-        dest='opts', nargs='*', help='channel model parameters. Something like:\n[sample_rate 32000 fmax 100] or [k 1]')
-    parser.add_argument( '--port', '-P', type=int, action='store',
-        dest='port', nargs='?', default=8888,
-        help='the port on which the server is listening')
+    parser.add_argument('--model', '-M', action='store',
+                        dest='model', nargs='?',
+                        help='name of the channel model to be used. Available models are:\n' + '\n'.join(channel_models.keys()))
+    parser.add_argument('--opts', '-O', action='store',
+                        dest='opts', nargs='*', help='channel model parameters. Something like:\n[sample_rate 32000 fmax 100] or [k 1]')
+    parser.add_argument('--port', '-P', type=int, action='store',
+                        dest='port', nargs='?', default=8888,
+                        help='the port on which the server is listening')
 
-    parser.add_argument( '--packetsize', '-N', type=int, action='store', nargs='?',
-        default=1000, help='How many samples a package will contain')
+    parser.add_argument('--packetsize', '-N', type=int, action='store', nargs='?',
+                        default=1000, help='How many samples a package will contain')
 
     args = parser.parse_args()
 
     # turn the channel model parameters in a dictionary
-    args.opts = dict(zip( args.opts[0::2], args.opts[1::2] ))
+    args.opts = dict(zip(args.opts[0::2], args.opts[1::2]))
     for key in args.opts.keys():
         # convert the parameters to float, except if the parameter is a string
         # than float() will throw a value error and we don't have to do

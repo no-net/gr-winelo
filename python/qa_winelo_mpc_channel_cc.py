@@ -51,7 +51,7 @@ class qa_mpc_channel_cc (gr_unittest.TestCase):
         src_data = (1,0,0,0,0)
         src_gauss_ch1 = (1,1,1,1,1)
         src_gauss_ch2 = (1,1,1,1,1)
-        expected_result = (1,0,0,0.5,0)
+        expected_result = (1,0,0,0.707106781,0)
         src0 = gr.vector_source_c(src_data)
         src1 = gr.vector_source_c(src_gauss_ch1)
         src2 = gr.vector_source_c(src_gauss_ch2)

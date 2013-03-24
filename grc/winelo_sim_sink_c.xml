@@ -58,6 +58,10 @@
 		<name>in</name>
 		<type>complex</type>
 	</sink>
+	<source>
+		<name>out</name>
+		<type>complex</type>
+	</source>
 <doc>
 Server IP: IP of the server. If the clients are running on the same machine as the server just use 127.0.0.1, which is the default value.
 
