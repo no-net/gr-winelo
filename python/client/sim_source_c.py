@@ -1,18 +1,20 @@
 import numpy
-from gnuradio import gr
+from grc_gnuradio import blks2 as grc_blks2
+from gnuradio import gr, uhd, blocks
 # import grextras for python blocks
 import gnuradio.extras
 
 from twisted.internet import reactor
 import thread
-from winelo.client import SendFactory
 import time
 
+from winelo.client import SendFactory, uhd_gate
 
-class sim_source_c(gr.block):
+
+class sim_source_cc(gr.block):
 
     def __init__(self, serverip, serverport, clientname,
-                 clientindex, packetsize, startreactor):
+                 packetsize, startreactor):
         gr.block.__init__(
             self,
             name="WiNeLo source",
@@ -29,7 +31,6 @@ class sim_source_c(gr.block):
                            serverport,
                            SendFactory(self, {'type': 'rx',
                                               'name': clientname,
-                                              'index': clientindex,
                                               'packet_size': packetsize})
                            )
         if startreactor:
@@ -72,3 +73,36 @@ class sim_source_c(gr.block):
 
     def set_connection(self, connection):
         self.twisted_conn = connection
+
+
+class sim_source_c(gr.hier_block2, uhd_gate):
+    """
+    Wireless Netowrks In-the-Loop source
+
+    Note: This is not a subclass of uhd.usrp_source because some methods
+    shouldn't be available at all for this block.
+    """
+    def __init__(self, serverip, serverport, clientname,
+                 packetsize, startreactor, dataport, simulation, device_addr, stream_args):
+        gr.hier_block2.__init__(self, "sim_source_c",
+                                gr.io_signature(0, 0, 0),
+                                gr.io_signature(1, 1, gr.sizeof_gr_complex))
+        uhd_gate.__init__(self)
+
+        self.simulation = simulation
+
+        simsrc = sim_source_cc(serverip, serverport, clientname,
+                               packetsize, startreactor)
+        if not self.simulation:
+            self.usrp = uhd.usrp_source(device_addr, stream_args)  # TODO: Parameters
+
+            self.connect(self.usrp, self)
+        else:
+            tcp_source = grc_blks2.tcp_source(itemsize=gr.sizeof_gr_complex,
+                                              addr=serverip,
+                                              port=dataport,
+                                              server=False)
+
+            self.gain_blk = blocks.multiply_const_vcc((1, ))
+
+            self.connect(tcp_source, self.gain_blk, simsrc, self)

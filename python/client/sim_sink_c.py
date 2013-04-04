@@ -1,22 +1,25 @@
 import numpy
-from gnuradio import gr
+from grc_gnuradio import blks2 as grc_blks2
+from gnuradio import gr, uhd, blocks
 # import grextras for python blocks
 import gnuradio.extras
 
 from twisted.internet import reactor
 import thread
-from winelo.client import SendFactory
 import time
 
-class sim_sink_c(gr.block):
+from winelo.client import SendFactory, uhd_gate
+
+
+class sim_sink_cc(gr.block):
 
     def __init__(self, serverip, serverport, clientname,
-                clientindex, packetsize, startreactor):
+                 packetsize, startreactor):
         gr.block.__init__(
             self,
-            name = "WiNeLo sink",
-            in_sig = [numpy.complex64],
-            out_sig = [numpy.complex64],
+            name="WiNeLo sink",
+            in_sig=[numpy.complex64],
+            out_sig=[numpy.complex64],
         )
         print 'Instantiating %s' % clientname
         # counter that keeps track of the number of requested samples
@@ -25,16 +28,19 @@ class sim_sink_c(gr.block):
         self.twisted_conn = None
         # to the profile
         # connect to the server
-        reactor.connectTCP(serverip, serverport, SendFactory(self,
-            {'type':'tx','name':clientname, 'index':clientindex,
-            'packet_size':packetsize}))
+        reactor.connectTCP(serverip,
+                           serverport,
+                           SendFactory(self, {'type': 'tx',
+                                              'name': clientname,
+                                              'packet_size': packetsize})
+                           )
         # start the reactor if the appropriate flag has been set.
         # THE REACTOR MUST NOT BE STARTED MORE THAN ONCE PER FLOWGRAPH
         if startreactor:
             print 'Starting the reactor'
             print 'Please make sure that no other WINELO Sink is instantiated '\
                   'after the reactor has been started'
-            thread.start_new_thread(reactor.run, () ,{'installSignalHandlers':0})
+            thread.start_new_thread(reactor.run, (), {'installSignalHandlers': 0})
         print 'giving twisted time to setup and block everything'
         time.sleep(1)
 
@@ -53,7 +59,6 @@ class sim_sink_c(gr.block):
                 break
         n_processed = len(output_items[0])
         self.n_requested_samples -= n_processed
-        #self.twisted_conn.sendSamples(requested_samples)
         self.twisted_conn.condition.release()
         return n_processed
 
@@ -62,3 +67,36 @@ class sim_sink_c(gr.block):
 
     def set_connection(self, twisted_conn):
         self.twisted_conn = twisted_conn
+
+
+class sim_sink_c(gr.hier_block2, uhd_gate):
+    """
+    Hier block used for managing the WiNeLo-stuff.
+
+    Connects a TCP sink to sim_source_cc.
+    """
+    def __init__(self, serverip, serverport, clientname,
+                 packetsize, startreactor, dataport, simulation, device_addr, stream_args):
+        gr.hier_block2.__init__(self, "sim_source_c",
+                                gr.io_signature(1, 1, gr.sizeof_gr_complex),
+                                gr.io_signature(0, 0, 0))
+        uhd_gate.__init__(self)
+
+        self.simulation = simulation
+
+        simsnk = sim_sink_cc(serverip, serverport, clientname,
+                             packetsize, startreactor)
+
+        if not self.simulation:
+            self.usrp = uhd.usrp_sink(device_addr, stream_args)  # TODO: Parameters
+
+            self.connect(self, self.usrp)
+        else:
+            tcp_sink = grc_blks2.tcp_sink(itemsize=gr.sizeof_gr_complex,
+                                          addr=serverip,
+                                          port=dataport,
+                                          server=False)
+
+            self.gain_blk = blocks.multiply_const_vcc((1, ))
+
+            self.connect(self, self.gain_blk, simsnk, tcp_sink)

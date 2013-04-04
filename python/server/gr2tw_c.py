@@ -25,12 +25,13 @@ class gr2tw_cc(gr.block):
         packet_size = self.twisted_conn.factory.packet_size
         # if the number of input_items is larger than the packet_size, send a
         # packet to the receivers. Otherwise don't do anything
-        if len(input_items[0]) >= packet_size:
-            #self.twisted_conn.handleAck(packet_size)
-            output_items[0] = input_items[0][0:packet_size]
-            return packet_size
-        else:
-            return 0
+        #if len(input_items[0]) >= packet_size:
+        #self.twisted_conn.handleAck(packet_size)
+        output_items[0] = input_items[0]  # [0:packet_size]
+            #print "--DEBUG: processed GR2TW -", packet_size
+        return packet_size
+        #else:
+        #    return 0
 
 
 class gr2tw_c(gr.hier_block2):
