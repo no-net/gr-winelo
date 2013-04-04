@@ -14,7 +14,7 @@ from winelo.client import SendFactory, uhd_gate
 class sim_sink_cc(gr.block):
 
     def __init__(self, serverip, serverport, clientname,
-                 packetsize, startreactor):
+                 packetsize):
         gr.block.__init__(
             self,
             name="WiNeLo sink",
@@ -34,13 +34,14 @@ class sim_sink_cc(gr.block):
                                               'name': clientname,
                                               'packet_size': packetsize})
                            )
-        # start the reactor if the appropriate flag has been set.
         # THE REACTOR MUST NOT BE STARTED MORE THAN ONCE PER FLOWGRAPH
-        if startreactor:
+        if not reactor.running:
             print 'Starting the reactor'
             print 'Please make sure that no other WINELO Sink is instantiated '\
                   'after the reactor has been started'
             thread.start_new_thread(reactor.run, (), {'installSignalHandlers': 0})
+        else:
+            time.sleep(2)
         print 'giving twisted time to setup and block everything'
         time.sleep(1)
 
@@ -76,7 +77,7 @@ class sim_sink_c(gr.hier_block2, uhd_gate):
     Connects a TCP sink to sim_source_cc.
     """
     def __init__(self, serverip, serverport, clientname,
-                 packetsize, startreactor, dataport, simulation, device_addr, stream_args):
+                 packetsize, dataport, simulation, device_addr, stream_args):
         gr.hier_block2.__init__(self, "sim_source_c",
                                 gr.io_signature(1, 1, gr.sizeof_gr_complex),
                                 gr.io_signature(0, 0, 0))
@@ -85,7 +86,7 @@ class sim_sink_c(gr.hier_block2, uhd_gate):
         self.simulation = simulation
 
         simsnk = sim_sink_cc(serverip, serverport, clientname,
-                             packetsize, startreactor)
+                             packetsize)
 
         if not self.simulation:
             self.usrp = uhd.usrp_sink(device_addr, stream_args)  # TODO: Parameters
