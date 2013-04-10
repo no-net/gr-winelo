@@ -73,19 +73,6 @@ class SendStuff(Protocol):
         elif header == 'dataport':
             payload, self.data = rest.split('EOP', 1)
             self.dataportReceived(int(payload))
-        elif header == 'data':
-            # have we received a complete packet?
-            if len(rest) >= (self.packet_size * 8 + 3):
-                # if samples were transmitted we can't use EOP since the data
-                # stream might contain the same sequence. Therefore we have to
-                # resort to the lenght of a packet to find its end
-                payload = rest[:self.packet_size * 8]
-                # the +3 removes the EOP flag from the data
-                self.data = rest[(self.packet_size * 8 + 3):]
-                self.samplesReceived(payload)
-            else:
-                # do nothing and wait for the rest to arrive
-                return None
         else:
             print 'Error: a header was not decoded correctly'
 
@@ -106,26 +93,13 @@ class SendStuff(Protocol):
         """
         Set port used for tcp source/sink.
         """
-        #self.condition.acquire()
         self.flowgraph.set_dataport(dataport)
-        #self.condition.notify()
-        #self.condition.release()
 
     def samplesReceived(self):
         """
         Called when the header checked out to be data
         """
-        #self.condition.acquire()
-        #self.flowgraph.new_samples_received(samples)
         reactor.callFromThread(self.transport.write, 'ackEOHdummyEOP')
-        #self.condition.notify()
-        #self.condition.release()
-
-    def sendSamples(self, samples):
-        msg = ''
-        for sample in samples:
-            msg += struct.pack('f', sample.real) + struct.pack('f', sample.imag)
-        reactor.callFromThread(self.transport.write, 'dataEOH' + msg + 'EOP')
 
 
 class SendFactory(ClientFactory):

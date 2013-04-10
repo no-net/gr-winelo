@@ -53,7 +53,6 @@ class sim_sink_cc(gr.block):
             n_requested_samples = self.n_requested_samples
             if n_requested_samples is 0:
                 self.twisted_conn.condition.wait()
-                #break
             elif n_requested_samples < len(input_items[0]):
                 output_items[0] = input_items[0][0:n_requested_samples]
                 break
@@ -93,22 +92,16 @@ class sim_sink_c(gr.hier_block2, uhd_gate):
                                 gr.io_signature(1, 1, gr.sizeof_gr_complex),
                                 gr.io_signature(0, 0, 0))
         uhd_gate.__init__(self)
-
         self.simulation = simulation
-
         if not self.simulation:
             self.usrp = uhd.usrp_sink(device_addr, stream_args)  # TODO: Parameters
-
             self.connect(self, self.usrp)
         else:
             simsnk = sim_sink_cc(serverip, serverport, clientname,
                                  packetsize)
-            #simsnk.__init__()
             tcp_sink = grc_blks2.tcp_sink(itemsize=gr.sizeof_gr_complex,
                                           addr=serverip,
                                           port=simsnk.get_dataport(),
                                           server=False)
-
             self.gain_blk = blocks.multiply_const_vcc((1, ))
-
             self.connect(self, self.gain_blk, simsnk, tcp_sink)

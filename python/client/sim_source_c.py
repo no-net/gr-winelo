@@ -53,20 +53,16 @@ class sim_source_cc(gr.block):
             # while gnuradio is still working on the old samples
             if len(input_items[0]) is 0:
                 self.twisted_conn.condition.wait()
-                #pass
             elif len(input_items[0]) < len(output_items[0]):
                 n_processed = len(input_items[0])
                 output_items[0][0:n_processed] = input_items[0][0:n_processed]
-                #self.twisted_conn.transport.write('ackEOHdummyEOP')
                 self.twisted_conn.samplesReceived()
                 self.twisted_conn.condition.release()
-                #self.twisted_conn.transport.write('ackEOHdummyEOP')
                 self.timeout_start = None
                 return n_processed
             else:
                 n_processed = len(output_items[0])
                 output_items[0][:] = input_items[0][0:n_processed]
-                #self.twisted_conn.transport.write('ackEOHdummyEOP')
                 self.twisted_conn.samplesReceived()
                 self.twisted_conn.condition.release()
                 self.timeout_start = None
@@ -101,22 +97,16 @@ class sim_source_c(gr.hier_block2, uhd_gate):
                                 gr.io_signature(0, 0, 0),
                                 gr.io_signature(1, 1, gr.sizeof_gr_complex))
         uhd_gate.__init__(self)
-
         self.simulation = simulation
-
         if not self.simulation:
             self.usrp = uhd.usrp_source(device_addr, stream_args)  # TODO: Parameters
-
             self.connect(self.usrp, self)
         else:
             simsrc = sim_source_cc(serverip, serverport, clientname,
                                    packetsize)
-            #simsrc.__init__()
             tcp_source = grc_blks2.tcp_source(itemsize=gr.sizeof_gr_complex,
                                               addr=serverip,
                                               port=simsrc.get_dataport(),
                                               server=False)
-
             self.gain_blk = blocks.multiply_const_vcc((1, ))
-
             self.connect(tcp_source, self.gain_blk, simsrc, self)

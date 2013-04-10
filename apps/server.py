@@ -153,7 +153,6 @@ class Sync(Protocol):
         """
         handleheaders = {'name': self.setName,
                          'type': self.setType,
-                         'data': self.samplesReceived,
                          'packet_size': self.setPacketSize,
                          'ack': self.handleAck,
                          }
@@ -169,24 +168,10 @@ class Sync(Protocol):
             print 'waiting for further data'
             print self.info
             return None
-
-        if header == 'data':
-            # have we received a complete packet
-            # if samples were transmitted we can't use EOP since the data
-            # stream might contain the same sequence. Therefore we have to
-            # resort to the lenght of a packet to find its end
-            if len(rest) >= (self.factory.packet_size * 8 + 3):
-                payload = rest[:self.factory.packet_size * 8]
-                # the +3 removes the EOP flag from the data
-                self.data = rest[self.factory.packet_size * 8 + 3:]
-            else:
-                return None
-        # Take care of all other headers.
-        else:
-            try:
-                payload, self.data = rest.split('EOP', 1)
-            except ValueError:
-                return None
+        try:
+            payload, self.data = rest.split('EOP', 1)
+        except ValueError:
+            return None
 
         # Call different methods, depending of the header.
         try:
@@ -296,29 +281,6 @@ class Sync(Protocol):
         """
         return 'Client \"%s\" is of type \"%s\" and supports a maximum packet size of \"%i\" ' % (
             self.info['name'], self.info['type'], self.info['packet_size'])
-
-    def samplesReceived(self, data):
-        """
-        Handles the received data and set the samples_passed_2_gr-flag, signalling
-        that this client is ready. If all clients are ready start distributing the
-        data.
-        """
-        sample_start = 0
-        sample_counter = 0
-        while(sample_start < len(data)):
-            realpart = struct.unpack('f', data[sample_start:sample_start + 4])[0]
-            imagpart = struct.unpack('f', data[sample_start + 4:sample_start + 8])[0]
-            self.samples[sample_counter] = numpy.complex(realpart, imagpart)
-            sample_start += 8
-            sample_counter += 1
-
-        # pass the samples to the GNU radio flowgraph and set the appropriate
-        # flag to True
-        self.condition.acquire()
-        self.info['block'].samples_received(self.samples)
-        self.condition.notify()
-        self.condition.release()
-        self.samples_passed_2_gr = True
 
     def reqData(self, number_of_samples):
         """
