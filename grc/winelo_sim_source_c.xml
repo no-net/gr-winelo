@@ -13,7 +13,7 @@
     <import>from gnuradio import uhd</import>
     <make>sim_source_c(
     $serverip, $serverport, $clientname,
-    $packetsize, $dataport, $simulation,
+    $packetsize, $simulation,
 	device_addr=$dev_addr,
 	stream_args=uhd.stream_args(
 		cpu_format="$type",
@@ -578,12 +578,6 @@ self.$(id).set_bandwidth($bw31, 31)
 		<name>Server Port</name>
 		<key>serverport</key>
 		<value>8888</value>
-		<type>int</type>
-	</param>
-	<param>
-		<name>Data Port</name>
-		<key>dataport</key>
-		<value>8889</value>
 		<type>int</type>
 	</param>
 	<param>

@@ -26,6 +26,8 @@ class sim_source_cc(gr.block):
         self.samples = numpy.zeros(0)
         # this is used to connect the block to the twisted reactor
         self.twisted_conn = None
+        # Port used by tcp source/sink for sample transmission
+        self.dataport = None
         # connect to the server
         reactor.connectTCP(serverip,
                            serverport,
@@ -76,6 +78,15 @@ class sim_source_cc(gr.block):
     def set_connection(self, connection):
         self.twisted_conn = connection
 
+    def set_dataport(self, port):
+        self.dataport = port
+        print "Port %s will be used for data transmission to/from the server" % self.dataport
+
+    def get_dataport(self):
+        while self.dataport is None:
+            time.sleep(0.2)
+        return self.dataport
+
 
 class sim_source_c(gr.hier_block2, uhd_gate):
     """
@@ -85,7 +96,7 @@ class sim_source_c(gr.hier_block2, uhd_gate):
     shouldn't be available at all for this block.
     """
     def __init__(self, serverip, serverport, clientname,
-                 packetsize, dataport, simulation, device_addr, stream_args):
+                 packetsize, simulation, device_addr, stream_args):
         gr.hier_block2.__init__(self, "sim_source_c",
                                 gr.io_signature(0, 0, 0),
                                 gr.io_signature(1, 1, gr.sizeof_gr_complex))
@@ -93,16 +104,17 @@ class sim_source_c(gr.hier_block2, uhd_gate):
 
         self.simulation = simulation
 
-        simsrc = sim_source_cc(serverip, serverport, clientname,
-                               packetsize)
         if not self.simulation:
             self.usrp = uhd.usrp_source(device_addr, stream_args)  # TODO: Parameters
 
             self.connect(self.usrp, self)
         else:
+            simsrc = sim_source_cc(serverip, serverport, clientname,
+                                   packetsize)
+            #simsrc.__init__()
             tcp_source = grc_blks2.tcp_source(itemsize=gr.sizeof_gr_complex,
                                               addr=serverip,
-                                              port=dataport,
+                                              port=simsrc.get_dataport(),
                                               server=False)
 
             self.gain_blk = blocks.multiply_const_vcc((1, ))

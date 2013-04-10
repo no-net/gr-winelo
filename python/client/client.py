@@ -70,6 +70,9 @@ class SendStuff(Protocol):
         elif header == 'packetsize':
             payload, self.data = rest.split('EOP', 1)
             self.packet_size = int(payload)
+        elif header == 'dataport':
+            payload, self.data = rest.split('EOP', 1)
+            self.dataportReceived(int(payload))
         elif header == 'data':
             # have we received a complete packet?
             if len(rest) >= (self.packet_size * 8 + 3):
@@ -98,6 +101,15 @@ class SendStuff(Protocol):
         self.flowgraph.set_n_requested_samples(number_of_samples)
         self.condition.notify()
         self.condition.release()
+
+    def dataportReceived(self, dataport):
+        """
+        Set port used for tcp source/sink.
+        """
+        #self.condition.acquire()
+        self.flowgraph.set_dataport(dataport)
+        #self.condition.notify()
+        #self.condition.release()
 
     def samplesReceived(self):
         """

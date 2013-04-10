@@ -65,6 +65,10 @@ class Sync(Protocol):
         self.info['channels'] = {}
         # maximum packet size supported by this client
         self.info['packet_size'] = None
+        # The port is simply calculated by the number of known clients + server
+        # port
+        client_no = len(factory.clients['rx'] + factory.clients['tx'])
+        self.info['dataport'] = factory.serverport + client_no + 1
         # self.factory provides the information of all connections
         # to this client
         self.factory = factory
@@ -87,6 +91,7 @@ class Sync(Protocol):
         print 'A client just connected'
         # send the currently used packet size to the client
         self.transport.write('packetsizeEOH%iEOP' % self.factory.packet_size)
+        self.transport.write('dataportEOH%iEOP' % self.info['dataport'])
         # set the connect in process flag
         # No new packets of samples due to received acks from the receivers will
         # be requested from the transmitters will a connect is in process.
@@ -206,9 +211,9 @@ class Sync(Protocol):
         """
         self.info['type'] = clienttype
         if clienttype == 'tx':
-            self.info['block'] = winelo.server.tw2gr_c(self, "127.0.0.1", 8888)
+            self.info['block'] = winelo.server.tw2gr_c(self, "127.0.0.1", self.info['dataport'])
         else:
-            self.info['block'] = winelo.server.gr2tw_c(self, "127.0.0.1", 8889)
+            self.info['block'] = winelo.server.gr2tw_c(self, "127.0.0.1", self.info['dataport'])
 
     def setName(self, name):
         """
@@ -241,6 +246,7 @@ class Sync(Protocol):
         # Append this client to the list of all clients of the same type
         self.factory.clients[self.info['type']].append(self)
         print self
+        print "Port %s will be used for data transmission to/from thislient" % self.info['dataport']
 
         for tx in self.factory.clients['tx']:
             # new tx blocks are needed, otherwise I always received too many
@@ -334,6 +340,7 @@ class SyncFactory(ServerFactory):
         """
         self.tic = time.time()
         self.args = args
+        self.serverport = args.port
         self.clients = {'tx': [], 'rx': []}
         self.channel = winelo.server.gr_channel(self.clients['tx'],
                                                 self.clients['rx']
