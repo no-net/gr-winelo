@@ -45,6 +45,7 @@ if _RTLD_GLOBAL != 0:
 from winelo_swig import *
 
 # import any pure python here
+
 #
 # needed for python blocks
 import gnuradio.extras.block_gateway

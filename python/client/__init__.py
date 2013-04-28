@@ -6,3 +6,4 @@ from sim_source_c import *
 from useful_sinks import *
 from useful_blocks import *
 from mrc_vcc import *
+from tcp_blocks import *

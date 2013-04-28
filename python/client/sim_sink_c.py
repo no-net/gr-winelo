@@ -1,25 +1,31 @@
 import numpy
 from grc_gnuradio import blks2 as grc_blks2
 from gnuradio import gr, uhd, blocks
+from gruel import pmt
 # import grextras for python blocks
 import gnuradio.extras
 
 from twisted.internet import reactor
 import thread
+from threading import Thread
 import time
+import precog
 
 from winelo.client import SendFactory, uhd_gate
+from winelo.client.tcp_blocks import tcp_sink
 
 
-class sim_sink_cc(gr.block):
+class sim_sink_cc(gr.basic_block):
 
     def __init__(self, serverip, serverport, clientname,
                  packetsize):
-        gr.block.__init__(
+        gr.basic_block.__init__(
             self,
             name="WiNeLo sink",
             in_sig=[numpy.complex64],
             out_sig=[numpy.complex64],
+            num_msg_inputs=1,
+            num_msg_outputs=0,
         )
         print 'Instantiating %s' % clientname
         # counter that keeps track of the number of requested samples
@@ -28,6 +34,22 @@ class sim_sink_cc(gr.block):
         self.twisted_conn = None
         # Port used by tcp source/sink for sample transmission
         self.dataport = None
+        # Zero-padding stuff
+        self.tags = {'tx_time': [],
+                     'tx_sob': [],
+                     'tx_eob': []
+                     }
+        self.zeros_to_produce = 0
+        self.produce_zeros = False
+        self.produce_zeros_next = False
+        self.last_eob = 0
+        self.samp_rate = 1000000  # TODO: Get sampp_rate from GRC!!!!!!!
+
+        self.no_input_counter = 0
+        self.max_no_input = 20
+        self.got_sob_eob = False
+        # Virtual USRP register
+        self.virtual_counter = 0
         # to the profile
         # connect to the server
         reactor.connectTCP(serverip,
@@ -41,27 +63,135 @@ class sim_sink_cc(gr.block):
             print 'Starting the reactor'
             print 'Please make sure that no other WINELO Sink is instantiated '\
                   'after the reactor has been started'
-            thread.start_new_thread(reactor.run, (), {'installSignalHandlers': 0})
+            #thread.start_new_thread(reactor.run, (), {'installSignalHandlers': 0})
+            Thread(target=reactor.run, args=(False,)).start()
         else:
-            time.sleep(2)
+            time.sleep(3)
         print 'giving twisted time to setup and block everything'
         time.sleep(1)
 
-    def work(self, input_items, output_items):
+   # def forecast(self, noutput_items, ninput_items_required):
+   #     ninput_items_required[0] = noutput_items
+
+    def general_work(self, input_items, output_items):
+        #if len(input_items[0]) == 0:
+        #    return -1
         self.twisted_conn.condition.acquire()
+        #print "Sim_sink Work called"
+        #print "DEBUG: len input:", len(input_items[0])
+
+        if not self.produce_zeros or self.produce_zeros_next:
+            self.evaluate_timestamps(self.nitems_read(0), len(input_items[0]))
+
+        if self.produce_zeros_next:
+            self.produce_zeros = True
+            self.produce_zeros_next = False
+
+        # Stop zero-padding
+        #print self.zeros_to_produce
+        if self.produce_zeros and (self.zeros_to_produce == 0):
+            self.produce_zeros = False
+            print "DEBUG: Stopped zero-padding"
+
+        # Get no. zeros to produce
+        if len(self.tags['tx_time']) == 1:
+            abs_time_offset = self.tags['tx_time'].pop(0)
+            print "TX time:", abs_time_offset, " - last eob:", self.last_eob
+            print "Zeros to produce:", (abs_time_offset - self.last_eob)
+            self.zeros_to_produce += (abs_time_offset - self.last_eob)
+        elif len(self.tags['tx_time']) > 1:
+            print "ERROR: Too much tx_time-TAGs in work-call!"
+            time.sleep(30)
+
+        # Start zero-padding
+        if len(self.tags['tx_eob']) == 1:
+            print "Start padding of ", self.zeros_to_produce, " zeros"
+            eob_offset = self.tags['tx_eob'].pop(0) + 1  # TODO: Check if offset-1 or offset!
+            input_items[0] = input_items[0][0:eob_offset]
+            self.produce_zeros_next = True
+            #self.zeros_to_produce = -1
+            # TODO TODO TODO: eob_offset muss sein: tx_eob = tx_sob!!!
+            self.last_eob = self.virtual_counter + eob_offset + 1 # TODO: check +-1!
+            self.got_sob_eob = True
+        elif len(self.tags['tx_eob']) > 1:
+            print "ERROR: Too much tx_eob-TAGs in work-call!"
+            time.sleep(30)
+
+        # Switch back to non-padding
+        if len(self.tags['tx_sob']) == 1 and not self.produce_zeros_next:
+            sob_offset = self.tags['tx_sob'].pop(0)
+            input_items[0] = input_items[0][sob_offset:]
+            self.got_sob_eob = True
+        elif len(self.tags['tx_sob']) > 1:
+            print "ERROR: Too much tx_sob-TAGs in work-call!"
+            time.sleep(30)
+
         while True:
             n_requested_samples = self.n_requested_samples
+            # TODO: Check packet-size
+            if self.n_requested_samples > 4096:
+                n_requested_samples = 4096
             if n_requested_samples is 0:
+                #print "DEBUG: sim_sink waiting for request!"
                 self.twisted_conn.condition.wait()
-            elif n_requested_samples < len(input_items[0]):
+                #self.n_requested_samples = 4096  # TODO: packetsize!
+            # TODO: evtl. drop packets while zero-padding!
+
+            elif self.produce_zeros:
+                #print "DEBUG: Producing Zeros..."
+                #print "DEBUG: Requested Samples", n_requested_samples
+                #Don't go over 0!
+                if (self.zeros_to_produce > 0) and (self.zeros_to_produce - n_requested_samples) < 0:
+                    # Stop zero-padding!
+                    output_items[0] = self.zeros_to_produce * [0]
+                else:
+                    output_items[0] = n_requested_samples * [0]
+                self.zeros_to_produce -= len(output_items[0])
+                #print "DEBUG: produced zeros:", len(output_items[0])
+                time.sleep(1.0 / self.samp_rate * len(output_items[0]))
+                self.consume(0, 0)
+                #n_processed = 0
+                #self.n_requested_samples -= len(output_items[0])
+                #self.virtual_counter += len(output_items[0])
+                break
+
+            elif (n_requested_samples < len(input_items[0])) and (n_requested_samples > 0):
+                print "DEBUG: elif1, req samp:", n_requested_samples
                 output_items[0] = input_items[0][0:n_requested_samples]
+                self.consume(0, len(output_items[0]))
+                #n_processed = len(output_items[0])
+                break
+            elif len(input_items[0]) > 0:
+                print "DEBUG: else - req samples:", n_requested_samples
+                output_items[0] = input_items[0]
+                self.consume(0, len(output_items[0]))
+                #n_processed = len(output_items[0])
+                break
+            elif not self.got_sob_eob:
+                # Needed to start the simulation
+                #self.no_input_counter += 1
+                #if self.no_input_counter == self.max_no_input:
+                #self.produce_zeros_next = True
+                #self.zeros_to_produce = 4096
+                #    self.no_input_counter = 0
+                time.sleep(1.0 / self.samp_rate * 4096)
+                self.consume(0, 0)
+                #return -1
+                # TODO: check for got_sob or got_eob -> don't add zeros if
+                # so!!!
+                output_items[0] = 4096 * [0]
+                self.zeros_to_produce -= 4096
                 break
             else:
-                output_items[0] = input_items[0]
+            #    print "Case not handled"
                 break
         n_processed = len(output_items[0])
+        self.virtual_counter += n_processed
+        #print "DEBUG: req samp before:", self.n_requested_samples
         self.n_requested_samples -= n_processed
+        #print "DEBUG: req samp after:", self.n_requested_samples
         self.twisted_conn.condition.release()
+        #print "DEBUG: Sim_sink produced:", n_processed
         return n_processed
 
     def set_n_requested_samples(self, number_of_samples):
@@ -76,8 +206,47 @@ class sim_sink_cc(gr.block):
 
     def get_dataport(self):
         while self.dataport is None:
-            time.sleep(0.2)
+            #print "DEBUG: Waiting for dataport"
+            #reactor.callFromThread(time.sleep, 0.5)
+            reactor.wakeUp()
+            time.sleep(0.5)
         return self.dataport
+
+    def refresh_virtual_counter(self, processed_items):
+        self.virtual_counter += processed_items
+
+    def evaluate_timestamps(self, nread, ninput_items):
+        tags = self.get_tags_in_range(0, nread, nread + ninput_items, pmt.pmt_string_to_symbol("tx_time"))
+        if tags is not None:
+            for i in range(0, len(tags)):
+                full_secs = pmt.pmt_to_uint64(pmt.pmt_tuple_ref(tags[i].value, 0))
+                frac_secs = pmt.pmt_to_double(pmt.pmt_tuple_ref(tags[i].value, 1))
+                tx_item = full_secs * self.samp_rate + int(frac_secs / (1.0 / self.samp_rate))
+                #if tx_item > self.last_tx_item:
+                #    if (len(self.tx_items) is 0) or (tx_item > self.tx_items[len(self.tx_items) - 1]):
+                self.tags['tx_time'].append(tx_item)
+
+        sob_tags = self.get_tags_in_range(0, nread, nread + ninput_items, pmt.pmt_string_to_symbol("tx_sob"))
+        if sob_tags is not None:
+            for sob_tag in sob_tags:
+                #if (sob_tag.offset) > self.last_sob_item:
+                #    if (len(self.sob_items) is 0) or ((sob_tag.offset) > self.sob_items[len(self.sob_items) - 1]):
+                self.tags['tx_sob'].append(sob_tag.offset)
+
+        eob_tags = self.get_tags_in_range(0, nread, nread + ninput_items, pmt.pmt_string_to_symbol("tx_eob"))
+        if eob_tags is not None:
+            for i in range(0, len(eob_tags)):
+                #if (eob_tags[i].offset) > self.last_eob_item:
+                #    if (len(self.eob_items) is 0) or ((eob_tags[i].offset) > self.eob_items[len(self.eob_items) - 1]):
+                self.tags['tx_eob'].append(eob_tags[i].offset)
+
+    def get_time_now(self):
+        # Calculate time according tot the sample rate & the number of processed items
+        time = 1.0 / self.samp_rate * self.virtual_counter
+        full_secs = int(time)
+        frac_secs = time - int(time)
+        # Return full & fractional seconds (like UHD)
+        return full_secs, frac_secs
 
 
 class sim_sink_c(gr.hier_block2, uhd_gate):
@@ -99,9 +268,11 @@ class sim_sink_c(gr.hier_block2, uhd_gate):
         else:
             simsnk = sim_sink_cc(serverip, serverport, clientname,
                                  packetsize)
-            tcp_sink = grc_blks2.tcp_sink(itemsize=gr.sizeof_gr_complex,
-                                          addr=serverip,
-                                          port=simsnk.get_dataport(),
-                                          server=False)
+            self.tcp_sink = grc_blks2.tcp_sink(itemsize=gr.sizeof_gr_complex,
+                                               addr=serverip,
+                                               port=simsnk.get_dataport(),
+                                               server=False)
             self.gain_blk = blocks.multiply_const_vcc((1, ))
-            self.connect(self, self.gain_blk, simsnk, tcp_sink)
+            self.heartbeat = precog.heart_beat(0.1, "", "")
+            self.connect(self.heartbeat, (simsnk, 1))
+            self.connect(self, self.gain_blk, (simsnk, 0), self.tcp_sink)

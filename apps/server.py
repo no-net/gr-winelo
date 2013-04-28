@@ -90,8 +90,9 @@ class Sync(Protocol):
         """
         print 'A client just connected'
         # send the currently used packet size to the client
-        self.transport.write('packetsizeEOH%iEOP' % self.factory.packet_size)
-        self.transport.write('dataportEOH%iEOP' % self.info['dataport'])
+        #self.transport.write('packetsizeEOH%iEOP' % self.factory.packet_size)
+        self.transport.write('packetsizeEOH%iEOPdataportEOH%iEOP' % (self.factory.packet_size, self.info['dataport']))
+        #self.transport.write('dataportEOH%iEOP' % self.info['dataport'])
         # set the connect in process flag
         # No new packets of samples due to received acks from the receivers will
         # be requested from the transmitters will a connect is in process.
@@ -138,7 +139,7 @@ class Sync(Protocol):
         # Request new samples from all connected transmitters, since no new
         # samples were requested while the channel flowgraph was shutting down.
         for tx in self.factory.clients['tx']:
-            reactor.callWhenRunning(tx.reqData, tx.factory.packet_size)
+            reactor.callFromThread(tx.reqData, tx.factory.packet_size)
 
     def dataReceived(self, recvdata):
         """
@@ -160,31 +161,32 @@ class Sync(Protocol):
         # join the new received data with the old unprocessed data
         self.data = self.data + recvdata
 
-        # get the first header of the data stream
-        try:
-            header, rest = self.data.split('EOH', 1)
-        except ValueError:
-            print 'Could not extract a complete header'
-            print 'waiting for further data'
-            print self.info
-            return None
-        try:
-            payload, self.data = rest.split('EOP', 1)
-        except ValueError:
-            return None
+        if len(self.data) > 0:
+            # get the first header of the data stream
+            try:
+                header, rest = self.data.split('EOH', 1)
+            except ValueError:
+                print 'Could not extract a complete header'
+                print 'waiting for further data'
+                print self.info
+                return None
+            try:
+                payload, self.data = rest.split('EOP', 1)
+            except ValueError:
+                return None
 
-        # Call different methods, depending of the header.
-        try:
-            handleheaders[header](payload)
-        except KeyError:
-            # This should never happen. Just some debug output.
-            print self.info['name'], ' header: ', header
-            print self.info['name'], ' payload: ', payload
+            # Call different methods, depending of the header.
+            try:
+                handleheaders[header](payload)
+            except KeyError:
+                # This should never happen. Just some debug output.
+                print self.info['name'], ' header: ', header
+                print self.info['name'], ' payload: ', payload
 
         # This if statement ensures, that if multiple packages are stored in
         # self.data all of them are processed
         if len(self.data) > 0:
-            reactor.callWhenRunning(self.dataReceived, '')
+            reactor.callFromThread(self.dataReceived, '')
 
     def setType(self, clienttype):
         """
@@ -256,13 +258,14 @@ class Sync(Protocol):
         # Request new samples from all connected transmitters, since no new
         # samples were requested while the channel flowgraph was shutting down.
         for tx in self.factory.clients['tx']:
-            reactor.callWhenRunning(tx.reqData, self.factory.packet_size)
+            reactor.callFromThread(tx.reqData, self.factory.packet_size)
 
     def handleAck(self, dummy):
         """
         Request new data from all transmitters, if an ack was received from all
         receivers.
         """
+        #print "DEBUG: ACK received"
         self.ack_received = True
         # has the ack been received from all receivers
         all_acks_received = False not in [rx.ack_received for rx in self.factory.clients['rx']]
@@ -270,7 +273,7 @@ class Sync(Protocol):
         # or disconnecting request new data from all transmitters
         if all_acks_received and not (self.factory.connect_in_process or self.factory.disconnect_in_process):
             for tx in self.factory.clients['tx']:
-                reactor.callWhenRunning(tx.reqData, tx.factory.packet_size)
+                reactor.callFromThread(tx.reqData, tx.factory.packet_size)
             for rx in self.factory.clients['rx']:
                 rx.ack_received = False
 

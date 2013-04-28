@@ -8,5 +8,6 @@ install (FILES
 	useful_sinks.py
 	useful_blocks.py
 	mrc_vcc.py
+    tcp_blocks.py
 	DESTINATION ${GR_PYTHON_DIR}/winelo/client
 )

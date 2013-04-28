@@ -43,9 +43,12 @@ class SendStuff(Protocol):
         then start transmitting information about itself to the server.
         """
         print 'Connection to the server established'
-        self.transport.write('nameEOH' + self.info['name'] + 'EOP')
-        self.transport.write('typeEOH' + self.info['type'] + 'EOP')
-        self.transport.write('packet_sizeEOH' + str(self.info['packet_size']) + 'EOP')
+        #self.transport.write('nameEOH' + self.info['name'] + 'EOP')
+        #self.transport.write('typeEOH' + self.info['type'] + 'EOP')
+        #self.transport.write('packet_sizeEOH' + str(self.info['packet_size']) + 'EOP')
+        reactor.callFromThread(self.transport.write, ('nameEOH' + self.info['name'] + 'EOP'))
+        reactor.callFromThread(self.transport.write, ('typeEOH' + self.info['type'] + 'EOP'))
+        reactor.callFromThread(self.transport.write, ('packet_sizeEOH' + str(self.info['packet_size']) + 'EOP'))
 
     def connectionLost(self, reason):
         """
@@ -60,24 +63,28 @@ class SendStuff(Protocol):
         header is then checked.
         """
         # join the new received data with the old unprocessed data
+        #print "DEBUG: client received:", recvdata
         self.data = self.data + recvdata
-        # get the first header of the data stream
-        header, rest = self.data.split('EOH', 1)
-        if header == 'request':
-            # the payload is written up to End of Packet
-            payload, self.data = rest.split('EOP', 1)
-            self.dataRequest(int(payload))
-        elif header == 'packetsize':
-            payload, self.data = rest.split('EOP', 1)
-            self.packet_size = int(payload)
-        elif header == 'dataport':
-            payload, self.data = rest.split('EOP', 1)
-            self.dataportReceived(int(payload))
-        else:
-            print 'Error: a header was not decoded correctly'
 
         if len(self.data) > 0:
-            reactor.callWhenRunning(self.dataReceived, '')
+            #print "DEBUG: Client - Werte data aus:", self.data
+            # get the first header of the data stream
+            header, rest = self.data.split('EOH', 1)
+            if header == 'request':
+                # the payload is written up to End of Packet
+                payload, self.data = rest.split('EOP', 1)
+                self.dataRequest(int(payload))
+            elif header == 'packetsize':
+                payload, self.data = rest.split('EOP', 1)
+                self.packet_size = int(payload)
+            elif header == 'dataport':
+                payload, self.data = rest.split('EOP', 1)
+                self.dataportReceived(int(payload))
+            else:
+                print 'Error: a header was not decoded correctly'
+
+        if len(self.data) > 0:
+            reactor.callFromThread(self.dataReceived, '')
 
     def dataRequest(self, number_of_samples):
         """
@@ -93,12 +100,16 @@ class SendStuff(Protocol):
         """
         Set port used for tcp source/sink.
         """
+        self.condition.acquire()
         self.flowgraph.set_dataport(dataport)
+        self.condition.notify()
+        self.condition.release()
 
     def samplesReceived(self):
         """
         Called when the header checked out to be data
         """
+        #print "DEBUG: client called samples received"
         reactor.callFromThread(self.transport.write, 'ackEOHdummyEOP')
 
 
@@ -115,6 +126,12 @@ class SendFactory(ClientFactory):
         Return our custom protocol.
         """
         return SendStuff(self, self.connection, self.info)
+
+    def clientConnectionFailed(self, connection, reason):
+        print 'Connection failed because of:', reason
+
+    def clientConnectionLost(self, connection, reason):
+        print 'Connection lost because of:', reason
 
 
 class uhd_gate(object):
