@@ -24,7 +24,7 @@ class sim_source_cc(gr.block):
             in_sig=[numpy.complex64],
             out_sig=[numpy.complex64],
         )
-        print 'Instantiating %s' % clientname
+        print '[INFO] WiNeLo - Instantiating %s' % clientname
         # this will store all samples that came from twisted
         self.samples = numpy.zeros(0)
         # this is used to connect the block to the twisted reactor
@@ -42,14 +42,12 @@ class sim_source_cc(gr.block):
                                               'packet_size': packetsize})
                            )
         if not reactor.running:
-            print 'Starting the reactor'
-            print 'Please make sure that no other WINELO Sink is instantiated '\
-                  'after the reactor has been started'
+            print '[INFO] WiNeLo - Starting the reactor'
             #thread.start_new_thread(reactor.run, (), {'installSignalHandlers': 0})
             Thread(target=reactor.run, args=(False,)).start()
         else:
             time.sleep(3)
-        print 'giving twisted time to setup and block everything'
+        print '[INFO] WiNeLo - giving twisted time to setup and block everything'
         time.sleep(1)
 
     def work(self, input_items, output_items):
@@ -62,7 +60,7 @@ class sim_source_cc(gr.block):
             # different threads. So it is possible that new samples arrive
             # while gnuradio is still working on the old samples
             if len(input_items[0]) is 0:
-                print "DEBUG: sim_source - waiting for items"
+                #print "DEBUG: sim_source - waiting for items"
                 self.twisted_conn.condition.wait()
             elif len(input_items[0]) < len(output_items[0]):
                 n_processed = len(input_items[0])
@@ -95,7 +93,7 @@ class sim_source_cc(gr.block):
 
     def set_dataport(self, port):
         self.dataport = port
-        print "Port %s will be used for data transmission to/from the server" % self.dataport
+        print '[INFO] WiNeLo - Port %s will be used for data transmission' % self.dataport
 
     def get_dataport(self):
         while self.dataport is None:

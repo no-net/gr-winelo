@@ -42,7 +42,7 @@ class SendStuff(Protocol):
         Called as soon as the client connected to the server. The client will
         then start transmitting information about itself to the server.
         """
-        print 'Connection to the server established'
+        print '[INFO] WiNeLo - Connection to the server established'
         #self.transport.write('nameEOH' + self.info['name'] + 'EOP')
         #self.transport.write('typeEOH' + self.info['type'] + 'EOP')
         #self.transport.write('packet_sizeEOH' + str(self.info['packet_size']) + 'EOP')
@@ -81,7 +81,7 @@ class SendStuff(Protocol):
                 payload, self.data = rest.split('EOP', 1)
                 self.dataportReceived(int(payload))
             else:
-                print 'Error: a header was not decoded correctly'
+                print '[ERROR] WiNeLo - a header was not decoded correctly'
 
         if len(self.data) > 0:
             reactor.callFromThread(self.dataReceived, '')
@@ -128,10 +128,10 @@ class SendFactory(ClientFactory):
         return SendStuff(self, self.connection, self.info)
 
     def clientConnectionFailed(self, connection, reason):
-        print 'Connection failed because of:', reason
+        print '[ERROR] WiNeLo - Connection failed:', reason
 
     def clientConnectionLost(self, connection, reason):
-        print 'Connection lost because of:', reason
+        print '[ERROR] WiNeLo - Connection lost:', reason
 
 
 class uhd_gate(object):
@@ -144,46 +144,46 @@ class uhd_gate(object):
 
     def set_start_time(self, uhd_time):
         if self.simulation:
-            print "Not supported by WiNeLo: set_start_time"
+            print "[WARNING] WiNeLo - Not supported by WiNeLo: set_start_time"
             #print "Send start time to server"  # DO
         else:
             self.usrp.set_start_time(uhd_time)
 
     def issue_stream_command(self, cmd):
         if self.simulation:
-            print "Not supported by WiNeLo: issue_stream_command"
+            print "[WARNING] WiNeLo - Not supported by WiNeLo: issue_stream_command"
         else:
             self.usrp.issue_stream_command(cmd)
 
     def get_usrp_info(self, chan=0):
         if self.simulation:
-            print "Not supported by WiNeLo: get_usrp_info"
+            print "[WARNING] WiNeLo - Not supported by WiNeLo: get_usrp_info"
             #return {"WiNeLo block type": "source"}  # DO: output packet_size etc.
         else:
             self.usrp.get_usrp_info(chan)
 
     def set_subdev_spec(self, spec, mboard=0):
         if self.simulation:
-            print "Not supported by WiNeLo: set_subdev_spec"
+            print "[WARNING] WiNeLo - Not supported by WiNeLo: set_subdev_spec"
         else:
             self.usrp.set_subdev_spec(spec, mboard)
 
     def get_subdev_spec(self, mboard=0):
         if self.simulation:
-            print "Not supported by WiNeLo: get_subdev_spec"
+            print "[WARNING] WiNeLo - Not supported by WiNeLo: get_subdev_spec"
         else:
             self.usrp.get_subdev_spec(mboard)
 
     def set_samp_rate(self, rate):
         if self.simulation:
-            print "Not supported by WiNeLo: set_samp_rate"
+            print "[WARNING] WiNeLo - Not supported by WiNeLo: set_samp_rate"
             #print "Set samp_rate on server"  # DO: Set samp_rate on server
         else:
             self.usrp.set_samp_rate(rate)
 
     def get_samp_rate(self):
         if self.simulation:
-            print "Not supported by WiNeLo: get_samp_rate"
+            print "[WARNING] WiNeLo - Not supported by WiNeLo: get_samp_rate"
             #samprate_server = "rate from server"  # DO: Get samp_rate from server
             #return samprate_server
         else:
@@ -203,7 +203,7 @@ class uhd_gate(object):
 
     def get_freq_range(self, chan=0):
         if self.simulation:
-            print "Not supported by WiNeLo: get_freq_range"
+            print "[WARNING] WiNeLo - Not supported by WiNeLo: get_freq_range"
             #return "freq_range"  # DO: uhd.freq_range 0 - 1000000000
         else:
             return self.usrp.get_center_freq(chan)
@@ -223,7 +223,7 @@ class uhd_gate(object):
 
     def get_gain_names(self, chan=0):
         if self.simulation:
-            print "Not supported by WiNeLo: get_gain_names"
+            print "[WARNING] WiNeLo - Not supported by WiNeLo: get_gain_names"
             #return ("WiNeLo-gain")
         else:
             return self.usrp.get_gain_names(chan)
@@ -236,123 +236,123 @@ class uhd_gate(object):
 
     def set_antenna(self, ant, chan=0):
         if self.simulation:
-            print "Not supported by WiNeLo: set_antenna"
+            print "[WARNING] WiNeLo - Not supported by WiNeLo: set_antenna"
         else:
             self.usrp.set_antenna(ant, chan)
 
     def get_antenna(self, chan=0):
         if self.simulation:
-            print "Not supported by WiNeLo: get_antenna"
+            print "[WARNING] WiNeLo - Not supported by WiNeLo: get_antenna"
             #return 'TX/RX'
         else:
             return self.usrp.get_antenna(chan)
 
     def get_antennas(self, chan=0):
         if self.simulation:
-            print "Not supported by WiNeLo: get_antennas"
+            print "[WARNING] WiNeLo - Not supported by WiNeLo: get_antennas"
             #return ('TX/RX')
         else:
             return self.usrp.get_antennas(chan)
 
     def set_bandwidth(self, bw, chan=0):
         if self.simulation:
-            print "Not supported by WiNeLo: set_bandwidth"
+            print "[WARNING] WiNeLo - Not supported by WiNeLo: set_bandwidth"
         else:
             self.usrp.set_bandwidth(bw, chan)
 
     def set_auto_dc_offset(self, enb, chan=0):
         if self.simulation:
-            print "Not supported by WiNeLo: set_auto_dc_offset"
+            print "[WARNING] WiNeLo - Not supported by WiNeLo: set_auto_dc_offset"
         else:
             self.usrp.set_auto_dc_offset(enb, chan)
 
     def set_dc_offset(self, offset, chan=0):
         if self.simulation:
-            print "Not supported by WiNeLo: set_dc_offset"
+            print "[WARNING] WiNeLo - Not supported by WiNeLo: set_dc_offset"
         else:
             self.usrp.set_dc_offset(offset, chan)
 
     def set_iq_balance(self, correction, chan=0):
         if self.simulation:
-            print "Not supported by WiNeLo: set_iq_balance"
+            print "[WARNING] WiNeLo - Not supported by WiNeLo: set_iq_balance"
         else:
             self.usrp.set_iq_balance(correction, chan)
 
     def get_sensor(self, name, chan=0):
         if self.simulation:
-            print "Not supported by WiNeLo: get_sensor"
+            print "[WARNING] WiNeLo - Not supported by WiNeLo: get_sensor"
         else:
             return self.usrp.get_sensor(name, chan)
 
     def get_sensor_names(self, chan=0):
         if self.simulation:
-            print "Not supported by WiNeLo: get_sensor_names"
+            print "[WARNING] WiNeLo - Not supported by WiNeLo: get_sensor_names"
             return ()
         else:
             return self.usrp.get_sensor_names(chan)
 
     def get_mboard_sensor(self, name, chan=0):
         if self.simulation:
-            print "Not supported by WiNeLo: get_mboard_sensor"
+            print "[WARNING] WiNeLo - Not supported by WiNeLo: get_mboard_sensor"
         else:
             return self.usrp.get_mboard_sensor(name, chan)
 
     def get_mboard_sensor_names(self, chan=0):
         if self.simulation:
-            print "Not supported by WiNeLo: get_sensor_names"
+            print "[WARNING] WiNeLo - Not supported by WiNeLo: get_sensor_names"
             return ()
         else:
             return self.usrp.get_mboard_sensor_names(chan)
 
     def set_time_source(self, source, mboard=0):
         if self.simulation:
-            print "Not supported by WiNeLo: set_time_source"
+            print "[WARNING] WiNeLo - Not supported by WiNeLo: set_time_source"
         else:
             self.usrp.set_time_source(source, mboard)
 
     def get_time_source(self, mboard):
         if self.simulation:
-            print "Not supported by WiNeLo: get_time_source"
+            print "[WARNING] WiNeLo - Not supported by WiNeLo: get_time_source"
             #return 'WiNeLo'
         else:
             return self.usrp.get_time_source(mboard)
 
     def get_time_sources(self, mboard):
         if self.simulation:
-            print "Not supported by WiNeLo: get_time_sources"
+            print "[WARNING] WiNeLo - Not supported by WiNeLo: get_time_sources"
             #return ('WiNeLo')
         else:
             return self.usrp.get_time_sources(mboard)
 
     def set_clock_source(self, source, mboard=0):
         if self.simulation:
-            print "Not supported by WiNeLo: set_clock_source"
+            print "[WARNING] WiNeLo - Not supported by WiNeLo: set_clock_source"
         else:
             self.usrp.set_clock_source(source, mboard)
 
     def get_clock_source(self, mboard):
         if self.simulation:
-            print "Not supported by WiNeLo: get_clock_source"
+            print "[WARNING] WiNeLo - Not supported by WiNeLo: get_clock_source"
             #return 'WiNeLo'
         else:
             return self.usrp.get_clock_source(mboard)
 
     def get_clock_sources(self, mboard):
         if self.simulation:
-            print "Not supported by WiNeLo: get_clock_sources"
+            print "[WARNING] WiNeLo - Not supported by WiNeLo: get_clock_sources"
             #return ('WiNeLo')
         else:
             return self.usrp.get_clock_sources(mboard)
 
     def set_clock_rate(self, rate, mboard=0):
         if self.simulation:
-            print "Not supported by WiNeLo: set_clock_rate"
+            print "[WARNING] WiNeLo - Not supported by WiNeLo: set_clock_rate"
         else:
             self.usrp.set_clock_rate(rate, mboard)
 
     def get_clock_rate(self, mboard=0):
         if self.simulation:
-            print "Not supported by WiNeLo: get_clock_rate"
+            print "[WARNING] WiNeLo - Not supported by WiNeLo: get_clock_rate"
             #return 'WiNeLo'
         else:
             return self.usrp.get_clock_rate(mboard)
@@ -365,28 +365,28 @@ class uhd_gate(object):
 
     def get_time_last_pps(self, mboard=0):
         if self.simulation:
-            print "Not supported by WiNeLo: set_time_last_pps"
+            print "[WARNING] WiNeLo - Not supported by WiNeLo: set_time_last_pps"
             #return 'WiNeLo-PPS'  #  DO: Return last full sec  from server!
         else:
             return self.usrp.get_time_last_pps(mboard)
 
     def set_time_now(self, time_spec, mboard=0):
         if self.simulation:
-            print "Not supported by WiNeLo: set_time_now"
+            print "[WARNING] WiNeLo - Not supported by WiNeLo: set_time_now"
             #return 'WiNeLo-time'  # DO: Set time in server now!
         else:
             self.usrp.set_time_now(time_spec, mboard)
 
     def set_time_next_pps(self, time_spec):
         if self.simulation:
-            print "Not supported by WiNeLo: set_time_next_pps"
+            print "[WARNING] WiNeLo - Not supported by WiNeLo: set_time_next_pps"
             #return 'WiNeLo-PPS'  # DO: Set time req next full sec in server!
         else:
             self.usrp.set_time_next_pps(time_spec)
 
     def set_time_unknown_pps(self, time_spec):
         if self.simulation:
-            print "Not supported by WiNeLo: set_time_unknown_pps"
+            print "[WARNING] WiNeLo - Not supported by WiNeLo: set_time_unknown_pps"
         else:
             self.usrp.set_time_unknown_pps(time_spec)
 

@@ -27,7 +27,7 @@ class sim_sink_cc(gr.basic_block):
             num_msg_inputs=1,
             num_msg_outputs=0,
         )
-        print 'Instantiating %s' % clientname
+        print '[INFO] WiNeLo - Instantiating %s' % clientname
         # counter that keeps track of the number of requested samples
         self.n_requested_samples = 0
         # this is used to connect the block to the twisted reactor
@@ -63,14 +63,12 @@ class sim_sink_cc(gr.basic_block):
                            )
         # THE REACTOR MUST NOT BE STARTED MORE THAN ONCE PER FLOWGRAPH
         if not reactor.running:
-            print 'Starting the reactor'
-            print 'Please make sure that no other WINELO Sink is instantiated '\
-                  'after the reactor has been started'
+            print '[INFO] WiNeLo - Starting the reactor'
             #thread.start_new_thread(reactor.run, (), {'installSignalHandlers': 0})
             Thread(target=reactor.run, args=(False,)).start()
         else:
             time.sleep(3)
-        print 'giving twisted time to setup and block everything'
+        print '[INFO] WiNeLo - giving twisted time to setup and block everything'
         time.sleep(1)
 
    # def forecast(self, noutput_items, ninput_items_required):
@@ -102,14 +100,14 @@ class sim_sink_cc(gr.basic_block):
         #print self.zeros_to_produce
         if self.produce_zeros and (self.zeros_to_produce == 0):
             self.produce_zeros = False
-            print "DEBUG: Stopped zero-padding"
+            #print "DEBUG: Stopped zero-padding"
 
         # Get no. zeros to produce
         if len(self.tags['tx_time']) >= 1:
             self.next_tx_time = self.tags['tx_time'].pop(0)
-            print "TX time:", self.next_tx_time, " - last eob:", self.last_eob
-            print "DEBUG: Zeros_to_produce before:", self.zeros_to_produce
-            print "Zeros to produce:", (self.next_tx_time - self.last_eob)
+            #print "TX time:", self.next_tx_time, " - last eob:", self.last_eob
+            #print "DEBUG: Zeros_to_produce before:", self.zeros_to_produce
+            print "[INFO] WiNeLo - Zeros to produce:", (self.next_tx_time - self.last_eob)
             self.zeros_to_produce += (self.next_tx_time - self.last_eob)
         #elif len(self.tags['tx_time']) > 1:
             #print "ERROR: Too much tx_time-TAGs in work-call!"
@@ -126,10 +124,10 @@ class sim_sink_cc(gr.basic_block):
 
         # Start zero-padding
         if len(self.tags['tx_eob']) >= 1:
-            print "DEBUG: self.tags tx_eob", self.tags['tx_eob']
-            print "Start padding of ", self.zeros_to_produce, " zeros"
+            #print "DEBUG: self.tags tx_eob", self.tags['tx_eob']
+            #print "Start padding of ", self.zeros_to_produce, " zeros"
             eob_offset = self.tags['tx_eob'].pop(0)  # TODO: Check if offset-1 or offset!
-            print "DEBUG: self.samples_to_tx = ", eob_offset, " - ", self.last_sob_offset
+            #print "DEBUG: self.samples_to_tx = ", eob_offset, " - ", self.last_sob_offset
             self.samples_to_tx = eob_offset - self.last_sob_offset + 1
             input_items[0] = input_items[0][0:self.samples_to_tx]
             self.produce_zeros_next = True
@@ -183,14 +181,14 @@ class sim_sink_cc(gr.basic_block):
             # duerfen max samples_to_tx und auch max n_req ausgegeben werden!
 
             elif len(input_items[0]) > 0 and not self.produce_zeros_next and (n_requested_samples > 0):
-                print "DEBUG: else - req samples:", n_requested_samples
+                #print "DEBUG: else - req samples:", n_requested_samples
                 if self.samples_to_tx <= n_requested_samples and self.samples_to_tx > 0:
                     samples_to_produce = self.samples_to_tx
                 else:
                     samples_to_produce = n_requested_samples
 
                 if samples_to_produce < len(input_items[0]):
-                    print "DEBUG: samples to produce:", samples_to_produce, " - len input:", len(input_items[0])
+                    #print "DEBUG: samples to produce:", samples_to_produce, " - len input:", len(input_items[0])
                     output_items[0] = input_items[0][0:samples_to_produce]
                 else:
                     output_items[0] = input_items[0]
@@ -198,7 +196,7 @@ class sim_sink_cc(gr.basic_block):
                 if self.samples_to_tx > 0:
                     self.samples_to_tx -= len(output_items[0])
                 # TODO: Produce maximum samples_to_tx output items!!!
-                print "DEBUG: Consumed", len(output_items[0]), "items."
+                #print "DEBUG: Consumed", len(output_items[0]), "items."
                 #n_processed = len(output_items[0])
                 break
             elif not self.got_sob_eob:
@@ -236,7 +234,7 @@ class sim_sink_cc(gr.basic_block):
 
     def set_dataport(self, port):
         self.dataport = port
-        print "Port %s will be used for data transmission to/from the server" % self.dataport
+        print '[INFO] WiNeLo - Port %s will be used for data transmission' % self.dataport
 
     def get_dataport(self):
         while self.dataport is None:
