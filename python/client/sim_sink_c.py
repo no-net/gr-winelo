@@ -42,12 +42,15 @@ class sim_sink_cc(gr.basic_block):
         self.zeros_to_produce = 0
         self.produce_zeros = False
         self.produce_zeros_next = False
+        self.samples_to_tx = 0
+        self.next_tx_time = 0
         self.last_eob = 0
         self.samp_rate = 1000000  # TODO: Get sampp_rate from GRC!!!!!!!
 
         self.no_input_counter = 0
         self.max_no_input = 20
         self.got_sob_eob = False
+        self.last_sob_offset = 0
         # Virtual USRP register
         self.virtual_counter = 0
         # to the profile
@@ -80,8 +83,16 @@ class sim_sink_cc(gr.basic_block):
         #print "Sim_sink Work called"
         #print "DEBUG: len input:", len(input_items[0])
 
-        if not self.produce_zeros or self.produce_zeros_next:
+        #if not (self.produce_zeros or self.produce_zeros_next):
+        if self.samples_to_tx == 0 and not (self.produce_zeros or self.produce_zeros_next):
+            self.tags = {'tx_time': [],
+                        'tx_sob': [],
+                        'tx_eob': []
+                        }
             self.evaluate_timestamps(self.nitems_read(0), len(input_items[0]))
+            #print "DEBUG: Evaluating timestamps..."
+            #print "---- samples_to_tx:", self.samples_to_tx
+            #print "zeros_to_produce:", self.zeros_to_produce
 
         if self.produce_zeros_next:
             self.produce_zeros = True
@@ -94,37 +105,43 @@ class sim_sink_cc(gr.basic_block):
             print "DEBUG: Stopped zero-padding"
 
         # Get no. zeros to produce
-        if len(self.tags['tx_time']) == 1:
-            abs_time_offset = self.tags['tx_time'].pop(0)
-            print "TX time:", abs_time_offset, " - last eob:", self.last_eob
-            print "Zeros to produce:", (abs_time_offset - self.last_eob)
-            self.zeros_to_produce += (abs_time_offset - self.last_eob)
-        elif len(self.tags['tx_time']) > 1:
-            print "ERROR: Too much tx_time-TAGs in work-call!"
-            time.sleep(30)
-
-        # Start zero-padding
-        if len(self.tags['tx_eob']) == 1:
-            print "Start padding of ", self.zeros_to_produce, " zeros"
-            eob_offset = self.tags['tx_eob'].pop(0) + 1  # TODO: Check if offset-1 or offset!
-            input_items[0] = input_items[0][0:eob_offset]
-            self.produce_zeros_next = True
-            #self.zeros_to_produce = -1
-            # TODO TODO TODO: eob_offset muss sein: tx_eob = tx_sob!!!
-            self.last_eob = self.virtual_counter + eob_offset + 1 # TODO: check +-1!
-            self.got_sob_eob = True
-        elif len(self.tags['tx_eob']) > 1:
-            print "ERROR: Too much tx_eob-TAGs in work-call!"
-            time.sleep(30)
+        if len(self.tags['tx_time']) >= 1:
+            self.next_tx_time = self.tags['tx_time'].pop(0)
+            print "TX time:", self.next_tx_time, " - last eob:", self.last_eob
+            print "DEBUG: Zeros_to_produce before:", self.zeros_to_produce
+            print "Zeros to produce:", (self.next_tx_time - self.last_eob)
+            self.zeros_to_produce += (self.next_tx_time - self.last_eob)
+        #elif len(self.tags['tx_time']) > 1:
+            #print "ERROR: Too much tx_time-TAGs in work-call!"
+            #time.sleep(30)
 
         # Switch back to non-padding
-        if len(self.tags['tx_sob']) == 1 and not self.produce_zeros_next:
-            sob_offset = self.tags['tx_sob'].pop(0)
-            input_items[0] = input_items[0][sob_offset:]
+        if len(self.tags['tx_sob']) >= 1 and not self.produce_zeros_next:
+            self.last_sob_offset = self.tags['tx_sob'].pop(0)
+            input_items[0] = input_items[0][self.last_sob_offset:]
             self.got_sob_eob = True
-        elif len(self.tags['tx_sob']) > 1:
-            print "ERROR: Too much tx_sob-TAGs in work-call!"
-            time.sleep(30)
+        #elif len(self.tags['tx_sob']) > 1:
+            #print "ERROR: Too much tx_sob-TAGs in work-call!"
+            #time.sleep(30)
+
+        # Start zero-padding
+        if len(self.tags['tx_eob']) >= 1:
+            print "DEBUG: self.tags tx_eob", self.tags['tx_eob']
+            print "Start padding of ", self.zeros_to_produce, " zeros"
+            eob_offset = self.tags['tx_eob'].pop(0)  # TODO: Check if offset-1 or offset!
+            print "DEBUG: self.samples_to_tx = ", eob_offset, " - ", self.last_sob_offset
+            self.samples_to_tx = eob_offset - self.last_sob_offset + 1
+            input_items[0] = input_items[0][0:self.samples_to_tx]
+            self.produce_zeros_next = True
+            #self.zeros_to_produce = -1
+            # TODO TODO TODO: virtual_counter statt next_tx_time! (wichtig bei
+            # GPS time z.b.
+            self.last_eob = self.next_tx_time + self.samples_to_tx # TODO: check +-1!
+            #print "DEBUG: calculated last_eob:", self.virtual_counter, " + ", self.zeros_to_produce, " + ", samples_to_tx
+            self.got_sob_eob = True
+        #elif len(self.tags['tx_eob']) > 1:
+            #print "ERROR: Too much tx_eob-TAGs in work-call!"
+            #time.sleep(30)
 
         while True:
             n_requested_samples = self.n_requested_samples
@@ -155,16 +172,33 @@ class sim_sink_cc(gr.basic_block):
                 #self.virtual_counter += len(output_items[0])
                 break
 
-            elif (n_requested_samples < len(input_items[0])) and (n_requested_samples > 0):
-                print "DEBUG: elif1, req samp:", n_requested_samples
-                output_items[0] = input_items[0][0:n_requested_samples]
-                self.consume(0, len(output_items[0]))
+            #elif (n_requested_samples < len(input_items[0])) and (n_requested_samples > 0):
+                #print "DEBUG: elif1, req samp:", n_requested_samples
+                #output_items[0] = input_items[0][0:n_requested_samples]
+                #self.consume(0, len(output_items[0]))
                 #n_processed = len(output_items[0])
-                break
-            elif len(input_items[0]) > 0:
+                #break
+
+            # TODO TODO TODO TODO TODO: Fass diese zwei schleifen zusammen, es
+            # duerfen max samples_to_tx und auch max n_req ausgegeben werden!
+
+            elif len(input_items[0]) > 0 and not self.produce_zeros_next and (n_requested_samples > 0):
                 print "DEBUG: else - req samples:", n_requested_samples
-                output_items[0] = input_items[0]
+                if self.samples_to_tx <= n_requested_samples and self.samples_to_tx > 0:
+                    samples_to_produce = self.samples_to_tx
+                else:
+                    samples_to_produce = n_requested_samples
+
+                if samples_to_produce < len(input_items[0]):
+                    print "DEBUG: samples to produce:", samples_to_produce, " - len input:", len(input_items[0])
+                    output_items[0] = input_items[0][0:samples_to_produce]
+                else:
+                    output_items[0] = input_items[0]
                 self.consume(0, len(output_items[0]))
+                if self.samples_to_tx > 0:
+                    self.samples_to_tx -= len(output_items[0])
+                # TODO: Produce maximum samples_to_tx output items!!!
+                print "DEBUG: Consumed", len(output_items[0]), "items."
                 #n_processed = len(output_items[0])
                 break
             elif not self.got_sob_eob:
@@ -217,28 +251,36 @@ class sim_sink_cc(gr.basic_block):
 
     def evaluate_timestamps(self, nread, ninput_items):
         tags = self.get_tags_in_range(0, nread, nread + ninput_items, pmt.pmt_string_to_symbol("tx_time"))
-        if tags is not None:
-            for i in range(0, len(tags)):
-                full_secs = pmt.pmt_to_uint64(pmt.pmt_tuple_ref(tags[i].value, 0))
-                frac_secs = pmt.pmt_to_double(pmt.pmt_tuple_ref(tags[i].value, 1))
-                tx_item = full_secs * self.samp_rate + int(frac_secs / (1.0 / self.samp_rate))
+        if tags:
+            #for i in range(0, len(tags)):
+                #full_secs = pmt.pmt_to_uint64(pmt.pmt_tuple_ref(tags[i].value, 0))
+                #frac_secs = pmt.pmt_to_double(pmt.pmt_tuple_ref(tags[i].value, 1))
+                #tx_item = full_secs * self.samp_rate + int(frac_secs / (1.0 / self.samp_rate))
                 #if tx_item > self.last_tx_item:
                 #    if (len(self.tx_items) is 0) or (tx_item > self.tx_items[len(self.tx_items) - 1]):
-                self.tags['tx_time'].append(tx_item)
+                #self.tags['tx_time'].append(tx_item)
+            full_secs = pmt.pmt_to_uint64(pmt.pmt_tuple_ref(tags[0].value, 0))
+            frac_secs = pmt.pmt_to_double(pmt.pmt_tuple_ref(tags[0].value, 1))
+            tx_item = full_secs * self.samp_rate + int(frac_secs / (1.0 / self.samp_rate))
+            #if tx_item > self.last_tx_item:
+            #    if (len(self.tx_items) is 0) or (tx_item > self.tx_items[len(self.tx_items) - 1]):
+            self.tags['tx_time'].append(tx_item)
 
         sob_tags = self.get_tags_in_range(0, nread, nread + ninput_items, pmt.pmt_string_to_symbol("tx_sob"))
-        if sob_tags is not None:
-            for sob_tag in sob_tags:
+        if sob_tags:
+            #for sob_tag in sob_tags:
                 #if (sob_tag.offset) > self.last_sob_item:
                 #    if (len(self.sob_items) is 0) or ((sob_tag.offset) > self.sob_items[len(self.sob_items) - 1]):
-                self.tags['tx_sob'].append(sob_tag.offset)
+                #self.tags['tx_sob'].append(sob_tag.offset)
+            self.tags['tx_sob'].append(sob_tags[0].offset)
 
         eob_tags = self.get_tags_in_range(0, nread, nread + ninput_items, pmt.pmt_string_to_symbol("tx_eob"))
-        if eob_tags is not None:
-            for i in range(0, len(eob_tags)):
+        if eob_tags:
+            #for i in range(0, len(eob_tags)):
                 #if (eob_tags[i].offset) > self.last_eob_item:
                 #    if (len(self.eob_items) is 0) or ((eob_tags[i].offset) > self.eob_items[len(self.eob_items) - 1]):
-                self.tags['tx_eob'].append(eob_tags[i].offset)
+                #self.tags['tx_eob'].append(eob_tags[i].offset)
+            self.tags['tx_eob'].append(eob_tags[0].offset)
 
     def get_time_now(self):
         # Calculate time according tot the sample rate & the number of processed items
