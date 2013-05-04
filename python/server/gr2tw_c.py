@@ -49,8 +49,11 @@ class gr2tw_c(gr.hier_block2):
                                 gr.io_signature(1, 1, gr.sizeof_gr_complex),
                                 gr.io_signature(0, 0, 0))
         gr2tw = gr2tw_cc(twisted_con)
-        self.tcp_sink = tcp_sink(itemsize=gr.sizeof_gr_complex,
-                                 addr=tcp_addr,
-                                 port=tcp_port,
-                                 server=True)
+        #self.tcp_sink = tcp_sink(itemsize=gr.sizeof_gr_complex,
+        #                         addr=tcp_addr,
+        #                         port=tcp_port,
+        #                         server=True)
+        self.tcp_sink = gr.udp_sink(itemsize=gr.sizeof_gr_complex,
+                                    host=tcp_addr,
+                                    port=tcp_port)
         self.connect(self, gr2tw, self.tcp_sink)

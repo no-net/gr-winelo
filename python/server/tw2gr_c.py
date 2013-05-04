@@ -72,9 +72,12 @@ class tw2gr_c(gr.hier_block2):
                                 gr.io_signature(0, 0, 0),
                                 gr.io_signature(1, 1, gr.sizeof_gr_complex))
         self.tw2gr = tw2gr_cc(twisted_con)
-        self.tcp_source = tcp_source(itemsize=gr.sizeof_gr_complex,
-                                     addr=tcp_addr,
-                                     port=tcp_port,
-                                     server=True)
+        #self.tcp_source = tcp_source(itemsize=gr.sizeof_gr_complex,
+        #                             addr=tcp_addr,
+        #                             port=tcp_port,
+        #                             server=True)
+        self.tcp_source = gr.udp_source(itemsize=gr.sizeof_gr_complex,
+                                        host=tcp_addr,
+                                        port=tcp_port)
         print "Connecting tw2gr..."
         self.connect(self.tcp_source, self.tw2gr, self)

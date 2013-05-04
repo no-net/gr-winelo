@@ -313,10 +313,13 @@ class sim_sink_c(gr.hier_block2, uhd_gate):
         else:
             simsnk = sim_sink_cc(serverip, serverport, clientname,
                                  packetsize)
-            self.tcp_sink = grc_blks2.tcp_sink(itemsize=gr.sizeof_gr_complex,
-                                               addr=serverip,
-                                               port=simsnk.get_dataport(),
-                                               server=False)
+            #self.tcp_sink = grc_blks2.tcp_sink(itemsize=gr.sizeof_gr_complex,
+            #                                   addr=serverip,
+            #                                   port=simsnk.get_dataport(),
+            #                                   server=False)
+            self.tcp_sink = gr.udp_sink(itemsize=gr.sizeof_gr_complex,
+                                        host=serverip,
+                                        port=simsnk.get_dataport())
             self.gain_blk = blocks.multiply_const_vcc((1, ))
             self.heartbeat = heart_beat(0.1, "", "")
             self.connect(self.heartbeat, (simsnk, 1))
