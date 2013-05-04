@@ -13,7 +13,7 @@ class gr2tw_cc(gr.block):
     def __init__(self, twisted_conn):
         gr.block.__init__(
             self,
-            name="WINELO-Simulation Sink",
+            name="winelo-gr2tw",
             in_sig=[numpy.complex64],
             out_sig=[numpy.complex64],
         )
@@ -27,11 +27,17 @@ class gr2tw_cc(gr.block):
             #print "DEBUG: gr2tw - packet sent"
             output_items[0:packet_size] = input_items[0:packet_size]  # [0:packet_size]
             return packet_size
-        else:
+        elif len(input_items[0] > 0):
             #print "DEBUG: gr2tw - NO packet sent - len input_items:", len(input_items[0])
-            #output_items[0] = input_items[0]
-            #return len(output_items[0])
+            output_items[0] = input_items[0]
+            #output_items[0] = packet_size * [0]
+            return len(output_items[0])
+        else:
+            print "DEBUG: gr2tw - no input_items tio produce out_items"
             return 0
+
+    def stop(self):
+        print "DEBUG: gr2tw - stop called"
 
 
 class gr2tw_c(gr.hier_block2):

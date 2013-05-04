@@ -35,7 +35,7 @@ add_subdirectory(channel)
 GR_PYTHON_INSTALL(
     FILES
     __init__.py
-    DESTINATION ${GR_PYTHON_DIR}/winelo
+    heart_beat.py DESTINATION ${GR_PYTHON_DIR}/winelo
 )
 
 ########################################################################

@@ -45,6 +45,7 @@ if _RTLD_GLOBAL != 0:
 from winelo_swig import *
 
 # import any pure python here
+from heart_beat import heart_beat
 
 #
 # needed for python blocks

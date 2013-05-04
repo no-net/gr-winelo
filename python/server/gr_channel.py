@@ -20,9 +20,10 @@ class gr_channel():
         for tx in self.txs:
             print 'setting kill flag'
             tx.kill = True
-            #tx.condition.acquire()
-            #tx.condition.notify()
-            #t.condition.release()
+            tx.condition.acquire()
+            tx.condition.notify()
+            tx.condition.release()
+            print "DEBUG: Condition released"
         tb.wait()
         print 'GNU Radio flowgraph waited'
         tb.disconnect_all()

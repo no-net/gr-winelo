@@ -37,12 +37,16 @@ def _get_sock_fd(addr, port, server):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     if server:
+        print "DEBUG: SERVER BLK init"
         sock.bind((addr, port))
         sock.listen(1)
         clientsock, address = sock.accept()
+        print "DEBUG: SERVER BLK init --- successful!"
         return os.dup(clientsock.fileno())
     else:
+        print "DEBUG: CLIENT BLK init"
         sock.connect((addr, port))
+        print "DEBUG: CLIENT BLK init --- successful!"
         return os.dup(sock.fileno())
 
 

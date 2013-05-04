@@ -31,5 +31,6 @@ install(FILES
 	winelo_cost207_typical_urban_6paths.xml
 	winelo_cost207_bad_urban_6paths.xml
 	winelo_cost207_hilly_terrain_6paths.xml
-    winelo_evm_cc.xml DESTINATION share/gnuradio/grc/blocks
+    winelo_evm_cc.xml
+    winelo_heart_beat.xml DESTINATION share/gnuradio/grc/blocks
 )

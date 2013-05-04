@@ -24,9 +24,10 @@ class tw2gr_cc(gr.block):
 
     def work(self, input_items, output_items):
         #print "DEBUG: tw2gr - work called"
-        self.twisted_conn.condition.acquire()
+        #self.twisted_conn.condition.acquire()
         if self.twisted_conn.kill is True:
-            self.twisted_conn.condition.release()
+            #self.twisted_conn.condition.release()
+            #print "DEBUG: tw2gr - work done --> killed!"
             return 0
         #while True:
             # this is necessary because twisted and gnuradio are running in
@@ -44,7 +45,7 @@ class tw2gr_cc(gr.block):
         if len(input_items[0]) < len(output_items[0]):
             n_processed = len(input_items[0])
             output_items[0][0:n_processed] = input_items[0][0:n_processed]
-            self.twisted_conn.condition.release()
+            #self.twisted_conn.condition.release()
             self.timeout_start = None
             self.twisted_conn.sampled_passed_2_gr = True
             #print "DEBUG: tw2gr - elif - items processed:", n_processed
@@ -52,11 +53,14 @@ class tw2gr_cc(gr.block):
         else:
             n_processed = len(output_items[0])
             output_items[0][:] = input_items[0][0:n_processed]
-            self.twisted_conn.condition.release()
+            #self.twisted_conn.condition.release()
             self.timeout_start = None
             self.twisted_conn.sampled_passed_2_gr = True
             #print "DEBUG: tw2gr - else - items processed:", n_processed
             return n_processed
+
+    def stop(self):
+        print "DEBUG: tw2gr - stop called"
 
 
 class tw2gr_c(gr.hier_block2):

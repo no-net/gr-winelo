@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<block>
+    <name>Heartbeat</name>
+    <key>winelo_heart_beat</key>
+	<category>WiNeLo</category>
+    <import>import winelo</import>
+    <make>winelo.heart_beat($period,$key,$value)</make>
+
+    <param>
+        <name>Period(seconds)</name>
+        <key>period</key>
+        <type>real</type>
+    </param>
+
+    <param>
+        <name>Key</name>
+        <key>key</key>
+        <type>string</type>
+    </param>
+
+    <param>
+        <name>Value</name>
+        <key>value</key>
+        <type>string</type>
+    </param>
+
+    <source>
+        <name>out</name>
+        <type></type>
+    </source>
+<doc>
+Generates a message with specific key and value once every [period].
+</doc>
+</block>

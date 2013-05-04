@@ -48,7 +48,7 @@ class sim_source_cc(gr.block):
         else:
             time.sleep(3)
         print '[INFO] WiNeLo - giving twisted time to setup and block everything'
-        time.sleep(1)
+        time.sleep(3)
 
     def work(self, input_items, output_items):
         #print "Source work called"
@@ -62,6 +62,8 @@ class sim_source_cc(gr.block):
             if len(input_items[0]) is 0:
                 #print "DEBUG: sim_source - waiting for items"
                 self.twisted_conn.condition.wait()
+                #if len(input_items[0]) is 0:
+                #    return 0
             elif len(input_items[0]) < len(output_items[0]):
                 n_processed = len(input_items[0])
                 output_items[0][0:n_processed] = input_items[0][0:n_processed]

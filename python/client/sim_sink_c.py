@@ -13,6 +13,7 @@ import precog
 
 from winelo.client import SendFactory, uhd_gate
 from winelo.client.tcp_blocks import tcp_sink
+from winelo import heart_beat
 
 
 class sim_sink_cc(gr.basic_block):
@@ -69,7 +70,7 @@ class sim_sink_cc(gr.basic_block):
         else:
             time.sleep(3)
         print '[INFO] WiNeLo - giving twisted time to setup and block everything'
-        time.sleep(1)
+        time.sleep(3)
 
    # def forecast(self, noutput_items, ninput_items_required):
    #     ninput_items_required[0] = noutput_items
@@ -141,7 +142,9 @@ class sim_sink_cc(gr.basic_block):
             #print "ERROR: Too much tx_eob-TAGs in work-call!"
             #time.sleep(30)
 
+        #print "DEBUG: sink - work"
         while True:
+            #print "DEBUG: sink - work -while-loop"
             n_requested_samples = self.n_requested_samples
             # TODO: Check packet-size
             if self.n_requested_samples > 4096:
@@ -149,6 +152,8 @@ class sim_sink_cc(gr.basic_block):
             if n_requested_samples is 0:
                 #print "DEBUG: sim_sink waiting for request!"
                 self.twisted_conn.condition.wait()
+                #if n_requested_samples is 0:
+                #    return 0
                 #self.n_requested_samples = 4096  # TODO: packetsize!
             # TODO: evtl. drop packets while zero-padding!
 
@@ -313,6 +318,6 @@ class sim_sink_c(gr.hier_block2, uhd_gate):
                                                port=simsnk.get_dataport(),
                                                server=False)
             self.gain_blk = blocks.multiply_const_vcc((1, ))
-            self.heartbeat = precog.heart_beat(0.1, "", "")
+            self.heartbeat = heart_beat(0.1, "", "")
             self.connect(self.heartbeat, (simsnk, 1))
             self.connect(self, self.gain_blk, (simsnk, 0), self.tcp_sink)
