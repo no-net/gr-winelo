@@ -55,6 +55,7 @@ class sim_sink_cc(gr.basic_block):
         self.last_sob_offset = 0
         # Virtual USRP register
         self.virtual_counter = 0
+        self.realtime_multiplicator = 2.0
         # to the profile
         # connect to the server
         reactor.connectTCP(serverip,
@@ -103,7 +104,7 @@ class sim_sink_cc(gr.basic_block):
         #print self.zeros_to_produce
         if self.produce_zeros and (self.zeros_to_produce == 0):
             self.produce_zeros = False
-            print "DEBUG: Stopped zero-padding"
+            #print "DEBUG: Stopped zero-padding"
 
         # Get no. zeros to produce
         dhg_late = False
@@ -112,13 +113,13 @@ class sim_sink_cc(gr.basic_block):
             #print "TX time:", self.next_tx_time, " - last eob:", self.last_eob
             #print "DEBUG: Zeros_to_produce before:", self.zeros_to_produce
             print "[INFO] WiNeLo - Zeros to produce:", (self.next_tx_time - self.last_eob)
-            print "DEBUG: Zeros to  produce", self.zeros_to_produce
+            #print "DEBUG: Zeros to  produce", self.zeros_to_produce
             self.zeros_to_produce += (self.next_tx_time - self.last_eob)
             #self.got_sob = True
             if self.zeros_to_produce < 0:
                 print '[ERROR] WiNeLo - Got SOB-tag too late. produced too much Zeros! Try increasing the realtime multiplicator!'
-                print 'DEBUG: produce_zeros:', self.produce_zeros
-                print 'DEBUG: produce_zeros_nxt:', self.produce_zeros_next
+                #print 'DEBUG: produce_zeros:', self.produce_zeros
+                #print 'DEBUG: produce_zeros_nxt:', self.produce_zeros_next
                 #self.virtual_counter = self.next_tx_time
                 self.zeros_to_produce = 0
                 dbg_late = True
@@ -195,7 +196,7 @@ class sim_sink_cc(gr.basic_block):
                 self.zeros_to_produce -= len(output_items[0])
                 #print "DEBUG: produced zeros:", len(output_items[0])
                 # TODO TODO: Multiplicator, realtime-mode!
-                time.sleep(1.0 / self.samp_rate * len(output_items[0]))
+                time.sleep(self.realtime_multiplicator / self.samp_rate * len(output_items[0]))
                 self.consume(0, 0)
                 #n_processed = 0
                 #self.n_requested_samples -= len(output_items[0])
@@ -248,7 +249,7 @@ class sim_sink_cc(gr.basic_block):
                 #self.produce_zeros_next = True
                 #self.zeros_to_produce = 4096
                 #    self.no_input_counter = 0
-                time.sleep(1.0 / self.samp_rate * 4096)
+                time.sleep(self.realtime_multiplicator / self.samp_rate * 4096)
                 self.consume(0, 0)
                 #return -1
                 # TODO: check for got_sob or got_eob -> don't add zeros if
