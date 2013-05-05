@@ -265,10 +265,11 @@ class Sync(Protocol):
         Request new data from all transmitters, if an ack was received from all
         receivers.
         """
-        #print "DEBUG: ACK received"
+        #print "DEBUG: Server - ACK received from %s" % self.info['name']
         self.ack_received = True
         # has the ack been received from all receivers
         all_acks_received = False not in [rx.ack_received for rx in self.factory.clients['rx']]
+        #print "DEBUG: Server - all_acks_received: %s" % all_acks_received
         # if all acks have been received and no client is currently connecting
         # or disconnecting request new data from all transmitters
         if all_acks_received and not (self.factory.connect_in_process or self.factory.disconnect_in_process):
@@ -289,6 +290,7 @@ class Sync(Protocol):
         """
         Request a packet of size self.factory.packet_size from a client
         """
+        #print 'DEBUG: Server - Requested samples from %s' % self.info['name']
         self.transport.write('requestEOH%dEOP' % (number_of_samples))
         self.samples_passed_2_gr = False
 

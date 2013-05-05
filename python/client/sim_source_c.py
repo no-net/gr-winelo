@@ -34,6 +34,8 @@ class sim_source_cc(gr.block):
         self.samp_rate = 1000000  # TODO: Get from GRC
         # Port used by tcp source/sink for sample transmission
         self.dataport = None
+        self.samples_to_produce = 0
+        self.p_size = 4096
         # connect to the server
         reactor.connectTCP(serverip,
                            serverport,
@@ -62,30 +64,44 @@ class sim_source_cc(gr.block):
             if len(input_items[0]) is 0:
                 #print "DEBUG: sim_source - waiting for items"
                 self.twisted_conn.condition.wait()
+                #print "DEBUG: sim_source - got items"
                 #if len(input_items[0]) is 0:
                 #    return 0
-            elif len(input_items[0]) < len(output_items[0]):
-                n_processed = len(input_items[0])
-                output_items[0][0:n_processed] = input_items[0][0:n_processed]
-                self.twisted_conn.samplesReceived()
-                self.twisted_conn.condition.release()
-                self.timeout_start = None
-                self.virtual_counter += n_processed
+            #if self.samples_to_produce <= len(input_items[0]) and self.samples_to_produce > 0:
+            #    produce_n_samples = self.samples_to_produce
+            #else:
+            #    produce_n_samples = len(input_items[0])
+
+            elif self.samples_to_produce < len(input_items[0]):
+                #print "DEBUG: samples to produce:", samples_to_produce, " - len input:", len(input_items[0])
+                output_items[0] = input_items[0][0:self.samples_to_produce]
+            else:
+                output_items[0] = input_items[0]
+
+            #elif len(input_items[0]) < len(output_items[0]):
+            #    n_processed = len(input_items[0])
+            #    output_items[0] = input_items[0]
                 #print "Source processed:", n_processed
                 #print "DEBUG: sim_source - elif - items processed:", n_processed
                 #time.sleep(1.0 / self.samp_rate * n_processed)
-                return n_processed
-            else:
-                n_processed = len(output_items[0])
-                output_items[0][:] = input_items[0][0:n_processed]
-                self.twisted_conn.samplesReceived()
-                self.twisted_conn.condition.release()
-                self.timeout_start = None
-                self.virtual_counter += n_processed
+            #else:
+            #    n_processed = len(output_items[0])
+            #    output_items[0] = input_items[0][0:n_processed]
                 #print "Source processed:", n_processed
                 #print "DEBUG: sim_source - else - items processed:", n_processed
                 #time.sleep(1.0 / self.samp_rate * n_processed)
-                return n_processed
+            self.timeout_start = None
+            n_processed = len(output_items[0])
+            self.virtual_counter += n_processed
+            #if n_processed < self.p_size:
+            #    print "DEBUG: source - ACK less samples"
+            self.samples_to_produce -= n_processed
+            if self.samples_to_produce == 0:
+                #print "DEBUG: ACK sent"
+                self.twisted_conn.samplesReceived()
+                self.samples_to_produce = self.p_size
+            self.twisted_conn.condition.release()
+            return n_processed
 
     def new_samples_received(self, samples):
         self.samples = numpy.append(self.samples, samples)

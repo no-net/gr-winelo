@@ -92,6 +92,7 @@ class SendStuff(Protocol):
         the gnuradio flowgraph
         """
         self.condition.acquire()
+        #print "DEBUG: Client %s - Request received" % self.info['name']
         self.flowgraph.set_n_requested_samples(number_of_samples)
         self.condition.notify()
         self.condition.release()

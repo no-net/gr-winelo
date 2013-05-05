@@ -70,18 +70,20 @@ class heart_beat(gr.block):
         self.key = key
         self.value = value
         self.counter = 0
-        self.counter_treshold = 100
+        self.counter_treshold = 63
 
     def work(self, input_items, output_items):
 
         print "DEBUG: Heartbeat work called!"
-        while(self.counter < self.counter_treshold):
+        #while(self.counter < self.counter_treshold):
+        while(1):
+            #print "DEBUG: Heartbeat - new run, run no %s" % self.counter
             blob = self.mgr.acquire(True) #block
             pmt.pmt_blob_resize(blob, len(self.value))
             pmt.pmt_blob_rw_data(blob)[:] = numpy.fromstring(self.value,dtype="uint8")
             self.post_msg(0, pmt.pmt_string_to_symbol(self.key), blob)
             time.sleep(self.period)
-            self.counter += 1
-        self.counter = 0
-        print "DEBUG: Heartbeat work finished!"
-        return 0
+            #self.counter += 1
+        #self.counter = 0
+        #print "DEBUG: Heartbeat work finished!"
+        #return 0
