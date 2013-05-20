@@ -21,9 +21,11 @@ class tw2gr_cc(gr.block):
         # the connection between this gr block and the corresponding twisted
         # conncetion
         self.twisted_conn = twisted_conn
+        self.dbg_samp_count = 0
 
     def work(self, input_items, output_items):
         #print "DEBUG: tw2gr - work called"
+        #print "INPUT:", input_items[0]
         #self.twisted_conn.condition.acquire()
         if self.twisted_conn.kill is True:
             #self.twisted_conn.condition.release()
@@ -49,15 +51,18 @@ class tw2gr_cc(gr.block):
             self.timeout_start = None
             self.twisted_conn.sampled_passed_2_gr = True
             #print "DEBUG: tw2gr - elif - items processed:", n_processed
-            return n_processed
         else:
             n_processed = len(output_items[0])
-            output_items[0][:] = input_items[0][0:n_processed]
+            output_items[0][0:n_processed] = input_items[0][0:n_processed]
             #self.twisted_conn.condition.release()
             self.timeout_start = None
             self.twisted_conn.sampled_passed_2_gr = True
             #print "DEBUG: tw2gr - else - items processed:", n_processed
-            return n_processed
+
+        self.dbg_samp_count += n_processed
+        #print "DEBUG: tw2gr - produced_items:", self.dbg_samp_count
+        #print output_items[0]
+        return n_processed
 
     def stop(self):
         print "DEBUG: tw2gr - stop called"
@@ -77,7 +82,7 @@ class tw2gr_c(gr.hier_block2):
         #                             port=tcp_port,
         #                             server=True)
         self.tcp_source = gr.udp_source(itemsize=gr.sizeof_gr_complex,
-                                        host=tcp_addr,
+                                        host=str(tcp_addr),
                                         port=tcp_port)
         print "Connecting tw2gr..."
         self.connect(self.tcp_source, self.tw2gr, self)

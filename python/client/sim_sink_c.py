@@ -56,6 +56,9 @@ class sim_sink_cc(gr.basic_block):
         # Virtual USRP register
         self.virtual_counter = 0
         self.realtime_multiplicator = 2.0
+        #TODO: DEBUG
+        self.dbg_counter = 0
+        self.dbg_samp_count = 0
         # to the profile
         # connect to the server
         reactor.connectTCP(serverip,
@@ -80,10 +83,12 @@ class sim_sink_cc(gr.basic_block):
     def general_work(self, input_items, output_items):
         #if len(input_items[0]) == 0:
         #    return -1
+        #print "Input:", input_items[0]
         dbg_late = False
         self.twisted_conn.condition.acquire()
        # print "Sim_sink Work called"
         #print "DEBUG: len input:", len(input_items[0])
+        #print "DEBUG: n_req_samples:", self.n_requested_samples
 
         #if not (self.produce_zeros or self.produce_zeros_next):
         if self.samples_to_tx == 0 and not (self.produce_zeros or self.produce_zeros_next):
@@ -173,11 +178,14 @@ class sim_sink_cc(gr.basic_block):
             if n_requested_samples is 0:
                 # Wait for samples
                 dbg = "if"
-                #print "DEBUG: sim_sink waiting for request!"
-                self.twisted_conn.condition.wait()
+                print "DEBUG: sim_sink waiting for request!"
+                self.twisted_conn.condition.wait(10)
+                print "DEBUG: sim_sink got request!"
                 #print "DEBUG: sim_sink - request received"
-                #if n_requested_samples is 0:
-                #    return 0
+                # TODO: REmove this ugly hack (UDP loss)
+                if n_requested_samples is 0:
+                    self.n_requested_samples = 4096
+                    return 0
                 #self.n_requested_samples = 4096  # TODO: packetsize!
             # TODO: evtl. drop packets while zero-padding!
 
@@ -190,9 +198,9 @@ class sim_sink_cc(gr.basic_block):
                 #Don't go over 0!
                 if (self.zeros_to_produce > 0) and (self.zeros_to_produce - n_requested_samples) < 0:
                     # Stop zero-padding!
-                    output_items[0] = self.zeros_to_produce * [0]
+                    output_items[0][0:self.zeros_to_produce] = self.zeros_to_produce * [0]
                 else:
-                    output_items[0] = n_requested_samples * [0]
+                    output_items[0][0:n_requested_samples] = n_requested_samples * [0]
                 self.zeros_to_produce -= len(output_items[0])
                 #print "DEBUG: produced zeros:", len(output_items[0])
                 # TODO TODO: Multiplicator, realtime-mode!
@@ -223,17 +231,20 @@ class sim_sink_cc(gr.basic_block):
                 else:
                     samples_to_produce = n_requested_samples
 
+                #print "Type input", type(input_items[0])
+                #print "DEBUG: Len output_items", len(output_items[0])
                 if samples_to_produce < len(input_items[0]):
                     #print "DEBUG: samples to produce:", samples_to_produce, " - len input:", len(input_items[0])
-                    output_items[0] = input_items[0][0:samples_to_produce]
+                    output_items[0][0:samples_to_produce] = input_items[0][0:samples_to_produce]
                 else:
-                    output_items[0] = input_items[0]
+                    output_items[0][0:len(input_items[0])] = input_items[0][:]
+                    #print "---DEBUG: len out", len(output_items[0])
                     self.got_sob = False
                 self.consume(0, len(output_items[0]))
                 if self.samples_to_tx > 0:
                     self.samples_to_tx -= len(output_items[0])
                 # TODO: Produce maximum samples_to_tx output items!!!
-                print "DEBUG: Consumed", len(output_items[0]), "items."
+                #print "DEBUG: Consumed", len(output_items[0]), "items."
                 #self.consume(0, len(output_items[0]))
                 #n_processed = len(output_items[0])
                 break
@@ -255,7 +266,7 @@ class sim_sink_cc(gr.basic_block):
                 # TODO: check for got_sob or got_eob -> don't add zeros if
                 # so!!!
                 #print "DEBUG: sim_source - waiting for items"
-                output_items[0] = n_requested_samples * [0]
+                output_items[0][0:n_requested_samples] = n_requested_samples * [0]
                 self.zeros_to_produce -= 4096
                 break
        #     else:
@@ -292,9 +303,15 @@ class sim_sink_cc(gr.basic_block):
         #print "DEBUG: req samp after:", self.n_requested_samples
         self.twisted_conn.condition.release()
         #print "DEBUG: Sim_sink produced:", n_processed
+        self.dbg_samp_count += n_processed
+        #print "DEBUG: sim_sink - produced_items:", self.dbg_samp_count
+        #print output_items[0]
+        #print "Type:|", type(output_items[0])
         return n_processed
 
     def set_n_requested_samples(self, number_of_samples):
+        self.dbg_counter += 1
+        #print "DEBUG: samples requested no:", self.dbg_counter
         if number_of_samples < 0:
             print "DEBUG: Number of requested samples is smaller than 0!"
         self.n_requested_samples += number_of_samples
@@ -383,9 +400,13 @@ class sim_sink_c(gr.hier_block2, uhd_gate):
             #                                   port=simsnk.get_dataport(),
             #                                   server=False)
             self.tcp_sink = gr.udp_sink(itemsize=gr.sizeof_gr_complex,
-                                        host=serverip,
-                                        port=simsnk.get_dataport())
-            self.gain_blk = blocks.multiply_const_vcc((1, ))
+                                        host=str(serverip),
+                                        port=simsnk.get_dataport()
+                                        )
+            self.gain_blk = gr.multiply_const_vcc((1, ))
             self.heartbeat = heart_beat(0.1, "", "")
             self.connect(self.heartbeat, (simsnk, 1))
-            self.connect(self, self.gain_blk, (simsnk, 0), self.tcp_sink)
+            #self.connect(self, (simsnk, 0), self.tcp_sink)
+            self.connect(self, self.gain_blk, (simsnk, 0))
+            self.connect((simsnk, 0), self.tcp_sink)
+            #self.connect(self, self.gain_blk, (simsnk, 0), self.tcp_sink)

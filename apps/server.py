@@ -81,6 +81,9 @@ class Sync(Protocol):
         # and Twisted.
         self.condition = threading.Condition()
         self.kill = False
+        #TODO: DEBUG
+        self.dbg_counter = 0
+        self.dbg_counter1 = 0
 
     def connectionMade(self):
         """Called automatically when a new client connects.
@@ -139,6 +142,8 @@ class Sync(Protocol):
         # Request new samples from all connected transmitters, since no new
         # samples were requested while the channel flowgraph was shutting down.
         for tx in self.factory.clients['tx']:
+            self.dbg_counter += 1
+            print "DEBUG: Server Requested Samples no:", self.dbg_counter
             reactor.callFromThread(tx.reqData, tx.factory.packet_size)
 
     def dataReceived(self, recvdata):
@@ -258,6 +263,8 @@ class Sync(Protocol):
         # Request new samples from all connected transmitters, since no new
         # samples were requested while the channel flowgraph was shutting down.
         for tx in self.factory.clients['tx']:
+            self.dbg_counter += 1
+            print "DEBUG: Server Requested Samples no:", self.dbg_counter
             reactor.callFromThread(tx.reqData, self.factory.packet_size)
 
     def handleAck(self, dummy):
@@ -265,15 +272,18 @@ class Sync(Protocol):
         Request new data from all transmitters, if an ack was received from all
         receivers.
         """
-        #print "DEBUG: Server - ACK received from %s" % self.info['name']
+        self.dbg_counter1 += 1
+        print "DEBUG: Server - ACK no. %s received from %s" % (self.dbg_counter1, self.info['name'])
         self.ack_received = True
         # has the ack been received from all receivers
         all_acks_received = False not in [rx.ack_received for rx in self.factory.clients['rx']]
-        #print "DEBUG: Server - all_acks_received: %s" % all_acks_received
+        print "DEBUG: Server - all_acks_received: %s" % all_acks_received
         # if all acks have been received and no client is currently connecting
         # or disconnecting request new data from all transmitters
         if all_acks_received and not (self.factory.connect_in_process or self.factory.disconnect_in_process):
             for tx in self.factory.clients['tx']:
+                self.dbg_counter += 1
+                print "DEBUG: Server Requested Samples no:", self.dbg_counter
                 reactor.callFromThread(tx.reqData, tx.factory.packet_size)
             for rx in self.factory.clients['rx']:
                 rx.ack_received = False

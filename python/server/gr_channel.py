@@ -66,22 +66,6 @@ class gr_channel():
         #              ----->| H(2,2) |---------->|       |
         #                    +--------+           +-------+
         #
-#        noise_sources = []
-#        for rx_idx, rx in enumerate(rxs):
-#            print
-#            print 'Making connections for %s' % rx.info['name']
-#            for tx_idx, tx in enumerate(txs):
-#                noise_sources.append(analog.noise_source_c(analog.GR_GAUSSIAN, 0.0001, 0))
-#                print '==> Connecting source of %s to its channel' % tx.info['name']
-#                tb.connect(noise_sources[-1], tx.info['channels'][rx.info['name']])
-#                print '==> Connecting this channel to the adder at port %d' % tx_idx
-#                tb.connect(tx.info['channels'][rx.info['name']], (adders[rx_idx], tx_idx))
-#                print
-#            # check if the list txs is not empty
-#            if txs:
-#                print 'Connecting the adder to the receiver %s' % rx.info['name']
-#                tb.connect(adders[rx_idx], rx.info['block'])
-#
         for rx_idx, rx in enumerate(rxs):
             print
             print 'Making connections for %s' % rx.info['name']
@@ -98,25 +82,3 @@ class gr_channel():
 
         print 'restarting gnuradio flowgraph'
         tb.start()
-#        # TODO: Remove ugly hack!
-#        #if len(txs) > 1:
-#        time.sleep(70)
-#        print "DEBUG: restructered flowgraph!"
-#        tb.lock()
-#        tb.disconnect_all()
-#
-#        for rx_idx, rx in enumerate(rxs):
-#            print
-#            print 'Making connections for %s' % rx.info['name']
-#            for tx_idx, tx in enumerate(txs):
-#                print '==> Connecting source of %s to its channel' % tx.info['name']
-#                tb.connect(tx.info['block'], tx.info['channels'][rx.info['name']])
-#                print '==> Connecting this channel to the adder at port %d' % tx_idx
-#                tb.connect(tx.info['channels'][rx.info['name']], (adders[rx_idx], tx_idx))
-#                print
-#            # check if the list txs is not empty
-#            if txs:
-#                print 'Connecting the adder to the receiver %s' % rx.info['name']
-#                tb.connect(adders[rx_idx], rx.info['block'])
-#
-#        tb.unlock()

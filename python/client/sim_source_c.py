@@ -34,8 +34,10 @@ class sim_source_cc(gr.block):
         self.samp_rate = 1000000  # TODO: Get from GRC
         # Port used by tcp source/sink for sample transmission
         self.dataport = None
-        self.samples_to_produce = 0
         self.p_size = 4096
+        self.samples_to_produce = self.p_size
+        # TODO: DEBUG
+        self.dbg_counter = 0
         # connect to the server
         reactor.connectTCP(serverip,
                            serverport,
@@ -72,11 +74,12 @@ class sim_source_cc(gr.block):
             #else:
             #    produce_n_samples = len(input_items[0])
 
-            elif self.samples_to_produce < len(input_items[0]):
-                #print "DEBUG: samples to produce:", samples_to_produce, " - len input:", len(input_items[0])
-                output_items[0] = input_items[0][0:self.samples_to_produce]
-            else:
-                output_items[0] = input_items[0]
+            #elif self.samples_to_produce < len(input_items[0]):
+            #    print "DEBUG: samples to produce:", self.samples_to_produce, " - len input:", len(input_items[0]), " - len output:", len(output_items[0])
+            #    if self.samples_to_produce > 0:
+            #        output_items[0][:] = input_items[0][0:self.samples_to_produce]
+            #else:
+            output_items[0][0:len(input_items[0])] = input_items[0][:]
 
             #elif len(input_items[0]) < len(output_items[0]):
             #    n_processed = len(input_items[0])
@@ -96,8 +99,14 @@ class sim_source_cc(gr.block):
             #if n_processed < self.p_size:
             #    print "DEBUG: source - ACK less samples"
             self.samples_to_produce -= n_processed
+            #print "DEBUG: NO ACK sent"
+            #print "DEBUG: NO ACK - produced:", len(output_items[0])
+            #print "DEBUG: NO ACK - samples to produce:", self.samples_to_produce
+            #print "DEBUG: NO ACK - len input", len(input_items[0])
             if self.samples_to_produce == 0:
-                #print "DEBUG: ACK sent"
+                self.dbg_counter += 1
+                #print "DEBUG: ACK senti no:", self.dbg_counter
+                #print "DEBUG: ACK - produced:", len(output_items[0])
                 self.twisted_conn.samplesReceived()
                 self.samples_to_produce = self.p_size
             self.twisted_conn.condition.release()

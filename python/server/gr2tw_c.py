@@ -24,16 +24,19 @@ class gr2tw_cc(gr.block):
         # if the number of input_items is larger than the packet_size, send a
         # packet to the receivers. Otherwise don't do anything
         if len(input_items[0]) >= packet_size:
+            #print "packet-size:", packet_size
             #print "DEBUG: gr2tw - packet sent"
-            output_items[0:packet_size] = input_items[0:packet_size]  # [0:packet_size]
+            #print "DEBUG: gr2tw - len out: %s " % len(output_items[0])
+            #print "DEBUG: gr2tw - len in: %s " % len(input_items[0])
+            output_items[0][0:packet_size] = input_items[0][0:packet_size]  # [0:packet_size]
             return packet_size
-        elif len(input_items[0] > 0):
+        elif len(input_items[0]) > 0:
             #print "DEBUG: gr2tw - NO packet sent - len input_items:", len(input_items[0])
-            output_items[0] = input_items[0]
+            output_items[0][0:len(input_items[0])] = input_items[0][:]
             #output_items[0] = packet_size * [0]
             return len(output_items[0])
         else:
-            print "DEBUG: gr2tw - no input_items tio produce out_items"
+            print "DEBUG: gr2tw - no input_items to produce out_items"
             return 0
 
     def stop(self):

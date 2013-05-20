@@ -10,6 +10,7 @@ from twisted.internet import reactor
 
 import struct
 import threading
+import numpy
 
 # disable Warnings for invalid classnames used by twisted
 #pylint: disable=C0103
@@ -36,6 +37,7 @@ class SendStuff(Protocol):
         self.packet_size = self.info['packet_size']
         self.packet_element_size = 8
         self.condition = threading.Condition()
+        self.dbg_counter = 0
 
     def connectionMade(self):
         """
@@ -92,8 +94,10 @@ class SendStuff(Protocol):
         the gnuradio flowgraph
         """
         self.condition.acquire()
-        #print "DEBUG: Client %s - Request received" % self.info['name']
+        self.dbg_counter += 1
+        #print "DEBUG: Client %s - Request received: %s - This is Req. no. %s" % (self.info['name'], number_of_samples, self.dbg_counter)
         self.flowgraph.set_n_requested_samples(number_of_samples)
+        #print "DEBUG: Set request!"
         self.condition.notify()
         self.condition.release()
 
@@ -209,8 +213,9 @@ class uhd_gate(object):
         else:
             return self.usrp.get_center_freq(chan)
 
-    def set_gain(self, gain, chan=0):
+    def set_gain(self, gain_db, chan=0):
         if self.simulation:
+            gain = numpy.power(10, gain_db)
             if gain in self.gain_range:
                 self.gain_blk.set_k((gain, ))
         else:

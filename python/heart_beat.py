@@ -63,9 +63,9 @@ class heart_beat(gr.block):
             num_msg_outputs = 1,
         )
 
-        self.mgr = pmt.pmt_mgr()
-        for i in range(64):
-            self.mgr.set(pmt.pmt_make_blob(10000))
+        #self.mgr = pmt.pmt_mgr()
+        #for i in range(64):
+        #    self.mgr.set(pmt.pmt_make_blob(10000))
         self.period = period
         self.key = key
         self.value = value
@@ -74,14 +74,15 @@ class heart_beat(gr.block):
 
     def work(self, input_items, output_items):
 
-        print "DEBUG: Heartbeat work called!"
+        #print "DEBUG: Heartbeat work called!"
         #while(self.counter < self.counter_treshold):
         while(1):
             #print "DEBUG: Heartbeat - new run, run no %s" % self.counter
-            blob = self.mgr.acquire(True) #block
-            pmt.pmt_blob_resize(blob, len(self.value))
-            pmt.pmt_blob_rw_data(blob)[:] = numpy.fromstring(self.value,dtype="uint8")
-            self.post_msg(0, pmt.pmt_string_to_symbol(self.key), blob)
+            #blob = self.mgr.acquire(True) #block
+            #pmt.pmt_blob_resize(blob, len(self.value))
+            #pmt.pmt_blob_rw_data(blob)[:] = numpy.fromstring(self.value,dtype="uint8")
+            self.post_msg(0, pmt.pmt_string_to_symbol(self.key), pmt.pmt_string_to_symbol(self.value))  # blob)
+            #self.post_msg(0, pmt.pmt_string_to_symbol(self.key), blob)
             time.sleep(self.period)
             #self.counter += 1
         #self.counter = 0
