@@ -273,17 +273,17 @@ class Sync(Protocol):
         receivers.
         """
         self.dbg_counter1 += 1
-        print "DEBUG: Server - ACK no. %s received from %s" % (self.dbg_counter1, self.info['name'])
+        #print "DEBUG: Server - ACK no. %s received from %s" % (self.dbg_counter1, self.info['name'])
         self.ack_received = True
         # has the ack been received from all receivers
         all_acks_received = False not in [rx.ack_received for rx in self.factory.clients['rx']]
-        print "DEBUG: Server - all_acks_received: %s" % all_acks_received
+        #print "DEBUG: Server - all_acks_received: %s" % all_acks_received
         # if all acks have been received and no client is currently connecting
         # or disconnecting request new data from all transmitters
         if all_acks_received and not (self.factory.connect_in_process or self.factory.disconnect_in_process):
             for tx in self.factory.clients['tx']:
                 self.dbg_counter += 1
-                print "DEBUG: Server Requested Samples no:", self.dbg_counter
+                #print "DEBUG: Server Requested Samples no:", self.dbg_counter
                 reactor.callFromThread(tx.reqData, tx.factory.packet_size)
             for rx in self.factory.clients['rx']:
                 rx.ack_received = False

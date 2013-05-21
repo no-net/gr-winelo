@@ -55,7 +55,7 @@ class sim_sink_cc(gr.basic_block):
         self.last_sob_offset = 0
         # Virtual USRP register
         self.virtual_counter = 0
-        self.realtime_multiplicator = 2.0
+        self.realtime_multiplicator = 3.0
         #TODO: DEBUG
         self.dbg_counter = 0
         self.dbg_samp_count = 0
@@ -100,6 +100,8 @@ class sim_sink_cc(gr.basic_block):
             #print "DEBUG: Evaluating timestamps..."
             #print "---- samples_to_tx:", self.samples_to_tx
             #print "zeros_to_produce:", self.zeros_to_produce
+            #print "produce_zeros:", self.produce_zeros
+            #print "produce_zeros_next:", self.produce_zeros_next
 
         if self.produce_zeros_next:
             self.produce_zeros = True
@@ -178,9 +180,9 @@ class sim_sink_cc(gr.basic_block):
             if n_requested_samples is 0:
                 # Wait for samples
                 dbg = "if"
-                print "DEBUG: sim_sink waiting for request!"
+                #print "DEBUG: sim_sink waiting for request!"
                 self.twisted_conn.condition.wait(10)
-                print "DEBUG: sim_sink got request!"
+                #print "DEBUG: sim_sink got request!"
                 #print "DEBUG: sim_sink - request received"
                 # TODO: REmove this ugly hack (UDP loss)
                 if n_requested_samples is 0:
@@ -199,9 +201,11 @@ class sim_sink_cc(gr.basic_block):
                 if (self.zeros_to_produce > 0) and (self.zeros_to_produce - n_requested_samples) < 0:
                     # Stop zero-padding!
                     output_items[0][0:self.zeros_to_produce] = self.zeros_to_produce * [0]
+                    n_produced = self.zeros_to_produce
                 else:
                     output_items[0][0:n_requested_samples] = n_requested_samples * [0]
-                self.zeros_to_produce -= len(output_items[0])
+                    n_produced = n_requested_samples
+                self.zeros_to_produce -= n_produced
                 #print "DEBUG: produced zeros:", len(output_items[0])
                 # TODO TODO: Multiplicator, realtime-mode!
                 time.sleep(self.realtime_multiplicator / self.samp_rate * len(output_items[0]))
@@ -236,13 +240,15 @@ class sim_sink_cc(gr.basic_block):
                 if samples_to_produce < len(input_items[0]):
                     #print "DEBUG: samples to produce:", samples_to_produce, " - len input:", len(input_items[0])
                     output_items[0][0:samples_to_produce] = input_items[0][0:samples_to_produce]
+                    n_produced = samples_to_produce
                 else:
                     output_items[0][0:len(input_items[0])] = input_items[0][:]
+                    n_produced = len(input_items[0])
                     #print "---DEBUG: len out", len(output_items[0])
                     self.got_sob = False
-                self.consume(0, len(output_items[0]))
+                self.consume(0, n_produced)
                 if self.samples_to_tx > 0:
-                    self.samples_to_tx -= len(output_items[0])
+                    self.samples_to_tx -= n_produced
                 # TODO: Produce maximum samples_to_tx output items!!!
                 #print "DEBUG: Consumed", len(output_items[0]), "items."
                 #self.consume(0, len(output_items[0]))
@@ -267,6 +273,7 @@ class sim_sink_cc(gr.basic_block):
                 # so!!!
                 #print "DEBUG: sim_source - waiting for items"
                 output_items[0][0:n_requested_samples] = n_requested_samples * [0]
+                n_produced = n_requested_samples
                 self.zeros_to_produce -= 4096
                 break
        #     else:
@@ -278,8 +285,7 @@ class sim_sink_cc(gr.basic_block):
                 #print "Case not handled"
        #         output_items[0] = []
        #         break
-        n_processed = len(output_items[0])
-        self.virtual_counter += n_processed
+        self.virtual_counter += n_produced
         #print "DEBUG: req samp before:", self.n_requested_samples
         before = "before"
         if self.n_requested_samples >= 0:
@@ -287,7 +293,7 @@ class sim_sink_cc(gr.basic_block):
             before = self.n_requested_samples
         else:
             before_gt = False
-        self.n_requested_samples -= n_processed
+        self.n_requested_samples -= n_produced
         if dbg_late:
             print "DEBUG: Underrun of req_samples:"
             print "-------- before: %s --- after: %s" % (before, self.n_requested_samples)
@@ -303,11 +309,11 @@ class sim_sink_cc(gr.basic_block):
         #print "DEBUG: req samp after:", self.n_requested_samples
         self.twisted_conn.condition.release()
         #print "DEBUG: Sim_sink produced:", n_processed
-        self.dbg_samp_count += n_processed
+        self.dbg_samp_count += n_produced
         #print "DEBUG: sim_sink - produced_items:", self.dbg_samp_count
         #print output_items[0]
         #print "Type:|", type(output_items[0])
-        return n_processed
+        return n_produced
 
     def set_n_requested_samples(self, number_of_samples):
         self.dbg_counter += 1
