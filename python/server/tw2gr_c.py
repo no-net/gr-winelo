@@ -72,7 +72,8 @@ class tw2gr_c(gr.hier_block2):
     """
     Connects a TCP sink to gr2tw_c.
     """
-    def __init__(self, twisted_con, tcp_addr, tcp_port):
+    def __init__(self, twisted_con, tcp_addr, tcp_port, app_center_freq,
+                 app_samp_rate, sim_bw, center_freq):
         gr.hier_block2.__init__(self, "tw2gr_c",
                                 gr.io_signature(0, 0, 0),
                                 gr.io_signature(1, 1, gr.sizeof_gr_complex))

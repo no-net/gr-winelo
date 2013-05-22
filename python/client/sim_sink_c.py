@@ -19,7 +19,7 @@ from winelo import heart_beat
 class sim_sink_cc(gr.basic_block):
 
     def __init__(self, serverip, serverport, clientname,
-                 packetsize):
+                 packetsize, samp_rate, center_freq):
         gr.basic_block.__init__(
             self,
             name="WiNeLo sink",
@@ -46,7 +46,7 @@ class sim_sink_cc(gr.basic_block):
         self.samples_to_tx = 0
         self.next_tx_time = 0
         self.last_eob = 0
-        self.samp_rate = 1000000  # TODO: Get sampp_rate from GRC!!!!!!!
+        self.samp_rate = samp_rate
 
         self.no_input_counter = 0
         self.max_no_input = 20
@@ -65,6 +65,8 @@ class sim_sink_cc(gr.basic_block):
                            serverport,
                            SendFactory(self, {'type': 'tx',
                                               'name': clientname,
+                                              'centerfreq': center_freq,
+                                              'samprate': self.samp_rate,
                                               'packet_size': packetsize})
                            )
         # THE REACTOR MUST NOT BE STARTED MORE THAN ONCE PER FLOWGRAPH
@@ -121,7 +123,7 @@ class sim_sink_cc(gr.basic_block):
             #print "DEBUG: Zeros_to_produce before:", self.zeros_to_produce
             print "[INFO] WiNeLo - Zeros to produce:", (self.next_tx_time - self.last_eob)
             #print "DEBUG: Zeros to  produce", self.zeros_to_produce
-            self.zeros_to_produce += (self.next_tx_time - self.last_eob)
+            self.zeros_to_produce += int(self.next_tx_time - self.last_eob)
             #self.got_sob = True
             if self.zeros_to_produce < 0:
                 print '[ERROR] WiNeLo - Got SOB-tag too late. produced too much Zeros! Try increasing the realtime multiplicator!'
@@ -200,6 +202,7 @@ class sim_sink_cc(gr.basic_block):
                 #Don't go over 0!
                 if (self.zeros_to_produce > 0) and (self.zeros_to_produce - n_requested_samples) < 0:
                     # Stop zero-padding!
+                    print "DEBUG: zeros_to_produce", self.zeros_to_produce
                     output_items[0][0:self.zeros_to_produce] = self.zeros_to_produce * [0]
                     n_produced = self.zeros_to_produce
                 else:
@@ -389,7 +392,8 @@ class sim_sink_c(gr.hier_block2, uhd_gate):
     Connects a TCP sink to sim_source_cc.
     """
     def __init__(self, serverip, serverport, clientname,
-                 packetsize, simulation, device_addr, stream_args):
+                 packetsize, simulation, samp_rate, center_freq, device_addr,
+                 stream_args):
         gr.hier_block2.__init__(self, "sim_source_c",
                                 gr.io_signature(1, 1, gr.sizeof_gr_complex),
                                 gr.io_signature(0, 0, 0))
@@ -400,7 +404,7 @@ class sim_sink_c(gr.hier_block2, uhd_gate):
             self.connect(self, self.usrp)
         else:
             simsnk = sim_sink_cc(serverip, serverport, clientname,
-                                 packetsize)
+                                 packetsize, samp_rate, center_freq)
             #self.tcp_sink = grc_blks2.tcp_sink(itemsize=gr.sizeof_gr_complex,
             #                                   addr=serverip,
             #                                   port=simsnk.get_dataport(),

@@ -158,6 +158,8 @@ class Sync(Protocol):
         EOP: End Of Packet
         """
         handleheaders = {'name': self.setName,
+                         'centerfreq': self.setCenterFreq,
+                         'samprate': self.setSampRate,
                          'type': self.setType,
                          'packet_size': self.setPacketSize,
                          'ack': self.handleAck,
@@ -203,15 +205,37 @@ class Sync(Protocol):
         """
         self.info['type'] = clienttype
         if clienttype == 'tx':
-            self.info['block'] = winelo.server.tw2gr_c(self, "127.0.0.1", self.info['dataport'])
+            self.info['block'] = winelo.server.tw2gr_c(self, "127.0.0.1",
+                                                       self.info['dataport'],
+                                                       self.info['centerfreq'],
+                                                       self.info['samprate'],
+                                                       self.factory.args.bandwidth,
+                                                       self.factory.args.centerfreq)
         else:
-            self.info['block'] = winelo.server.gr2tw_c(self, "127.0.0.1", self.info['dataport'])
+            self.info['block'] = winelo.server.gr2tw_c(self, "127.0.0.1",
+                                                       self.info['dataport'],
+                                                       self.info['centerfreq'],
+                                                       self.info['samprate'],
+                                                       self.factory.args.bandwidth,
+                                                       self.factory.args.centerfreq)
 
     def setName(self, name):
         """
         Sets the name of this client
         """
         self.info['name'] = name
+
+    def setSampRate(self, samp_rate):
+        """
+        Sets the sample rate of this client
+        """
+        self.info['samprate'] = float(samp_rate)
+
+    def setCenterFreq(self, center_freq):
+        """
+        Sets the center frequency of this client
+        """
+        self.info['centerfreq'] = float(center_freq)
 
     def setPacketSize(self, packet_size):
         """
@@ -380,9 +404,12 @@ def main():
     parser.add_argument('--port', '-P', type=int, action='store',
                         dest='port', nargs='?', default=8888,
                         help='the port on which the server is listening')
-
     parser.add_argument('--packetsize', '-N', type=int, action='store', nargs='?',
-                        default=1000, help='How many samples a package will contain')
+                        default=1000, help='How many samples a packet will contain')
+    parser.add_argument('--bandwidth', '-B', type=float, action='store', nargs='?',
+                        default=1000000.0, help='Simulation bandwidth')
+    parser.add_argument('--centerfreq', '-F', type=float, action='store', nargs='?',
+                        default=100000000.0, help='Center frequency of simulation band')
 
     args = parser.parse_args()
 

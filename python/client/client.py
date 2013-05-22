@@ -49,6 +49,8 @@ class SendStuff(Protocol):
         #self.transport.write('typeEOH' + self.info['type'] + 'EOP')
         #self.transport.write('packet_sizeEOH' + str(self.info['packet_size']) + 'EOP')
         reactor.callFromThread(self.transport.write, ('nameEOH' + self.info['name'] + 'EOP'))
+        reactor.callFromThread(self.transport.write, ('centerfreqEOH' + str(self.info['centerfreq']) + 'EOP'))
+        reactor.callFromThread(self.transport.write, ('samprateEOH' + str(self.info['samprate']) + 'EOP'))
         reactor.callFromThread(self.transport.write, ('typeEOH' + self.info['type'] + 'EOP'))
         reactor.callFromThread(self.transport.write, ('packet_sizeEOH' + str(self.info['packet_size']) + 'EOP'))
 

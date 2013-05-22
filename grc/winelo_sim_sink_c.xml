@@ -14,7 +14,7 @@
 	<!-- a sink of the client is a source to the server -->
     <make>sim_sink_c(
     $serverip, $serverport, $clientname,
-    $packetsize, $simulation,
+    $packetsize, $simulation, $samp_rate, $center_freq0,
 	device_addr=$dev_addr,
 	stream_args=uhd.stream_args(
 		cpu_format="$type",

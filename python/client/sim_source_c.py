@@ -17,7 +17,7 @@ from winelo.client.tcp_blocks import tcp_source
 class sim_source_cc(gr.block):
 
     def __init__(self, serverip, serverport, clientname,
-                 packetsize):
+                 packetsize, samp_rate, center_freq):
         gr.block.__init__(
             self,
             name="WiNeLo source",
@@ -31,7 +31,7 @@ class sim_source_cc(gr.block):
         self.twisted_conn = None
         # Needed for WiNeLo-time
         self.virtual_counter = 0
-        self.samp_rate = 1000000  # TODO: Get from GRC
+        self.samp_rate = samp_rate
         # Port used by tcp source/sink for sample transmission
         self.dataport = None
         self.p_size = 4096
@@ -43,6 +43,8 @@ class sim_source_cc(gr.block):
                            serverport,
                            SendFactory(self, {'type': 'rx',
                                               'name': clientname,
+                                              'centerfreq': center_freq,
+                                              'samprate': self.samp_rate,
                                               'packet_size': packetsize})
                            )
         if not reactor.running:
@@ -159,7 +161,8 @@ class sim_source_c(gr.hier_block2, uhd_gate):
     shouldn't be available at all for this block.
     """
     def __init__(self, serverip, serverport, clientname,
-                 packetsize, simulation, device_addr, stream_args):
+                 packetsize, simulation, samp_rate, center_freq,
+                 device_addr, stream_args):
         gr.hier_block2.__init__(self, "sim_source_c",
                                 gr.io_signature(0, 0, 0),
                                 gr.io_signature(1, 1, gr.sizeof_gr_complex))
@@ -171,7 +174,7 @@ class sim_source_c(gr.hier_block2, uhd_gate):
             self.connect(self.usrp, self)
         else:
             self.simsrc = sim_source_cc(serverip, serverport, clientname,
-                                        packetsize)
+                                        packetsize, samp_rate, center_freq)
             # TODO: dirty hack!!!
             #self.tcp_source = grc_blks2.tcp_source(itemsize=gr.sizeof_gr_complex,
             #                                       addr=self.serverip,
