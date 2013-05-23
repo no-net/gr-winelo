@@ -23,7 +23,7 @@ class gr_channel():
             tx.condition.acquire()
             tx.condition.notify()
             tx.condition.release()
-            print "DEBUG: Condition released"
+            #print "DEBUG: Condition released"
         tb.wait()
         print 'GNU Radio flowgraph waited'
         tb.disconnect_all()

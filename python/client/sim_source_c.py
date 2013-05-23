@@ -16,7 +16,7 @@ from winelo.client.tcp_blocks import tcp_source
 
 class sim_source_cc(gr.block):
 
-    def __init__(self, serverip, serverport, clientname,
+    def __init__(self, hier_blk, serverip, serverport, clientname,
                  packetsize, samp_rate, center_freq):
         gr.block.__init__(
             self,
@@ -25,17 +25,20 @@ class sim_source_cc(gr.block):
             out_sig=[numpy.complex64],
         )
         print '[INFO] WiNeLo - Instantiating %s' % clientname
+        self.hier_blk = hier_blk
         # this will store all samples that came from twisted
         self.samples = numpy.zeros(0)
         # this is used to connect the block to the twisted reactor
         self.twisted_conn = None
         # Needed for WiNeLo-time
         self.virtual_counter = 0
+        # Evaluated for timed commands -> can be higher/absolute (GPS time)
+        self.virtual_time = 0
         self.samp_rate = samp_rate
         # Port used by tcp source/sink for sample transmission
         self.dataport = None
-        self.p_size = 4096
-        self.samples_to_produce = self.p_size
+        self.packet_size = packetsize
+        self.samples_to_produce = self.packet_size
         # TODO: DEBUG
         self.dbg_counter = 0
         # connect to the server
@@ -76,6 +79,9 @@ class sim_source_cc(gr.block):
             else:
                 produce_n_samples = len(input_items[0])
 
+            if produce_n_samples > len(output_items[0]):
+                produce_n_samples = len(output_items[0])
+
             #print "DEBUG: src - produce_n: %s - samples_to_produce: %s" % (produce_n_samples, self.samples_to_produce)
 
             #elif self.samples_to_produce < len(input_items[0]):
@@ -99,6 +105,24 @@ class sim_source_cc(gr.block):
                 #time.sleep(1.0 / self.samp_rate * n_processed)
             self.timeout_start = None
             self.virtual_counter += produce_n_samples
+            self.virtual_time += produce_n_samples / float(self.samp_rate)
+            # TODO TODO TODO TODO: Produce max. diff samples, then call commands before
+            # running again!
+            # CHECK TIMED COMMANDS
+            if len(self.hier_blk.command_times) > 0:
+                #print "DEBUG: evaluating cmd times"
+                cmd_time, n_cmds = self.hier_blk.command_times[0]
+                #print "DEBUG: time %s - n_cmds %s - virt_time %s" % (time, n_cmds, self.virtual_time)
+                while self.virtual_time > cmd_time:
+                    #print "DEBUG: calling run_timed_cmds"
+                    self.hier_blk.command_times.pop(0)
+                    #print "DEBUG-----------------------hier_blk_cmd_times", self.hier_blk.command_times
+                    self.run_timed_cmds(n_cmds)
+                    if len(self.hier_blk.command_times) > 0:
+                        #print "DEBUG: NEW TIME, CMDS"
+                        cmd_time, n_cmds = self.hier_blk.command_times[0]
+                    else:
+                        break
             #if produce_n_samples < self.p_size:
             #    print "DEBUG: source - ACK less samples"
             self.samples_to_produce -= produce_n_samples
@@ -109,12 +133,18 @@ class sim_source_cc(gr.block):
             if self.samples_to_produce == 0:
                 self.dbg_counter += 1
                 #print "DEBUG: ACK senti no:", self.dbg_counter
-                #print "DEBUG: ACK - produced:", len(output_items[0])
+                #print "DEBUG: ACK - produced:", produce_n_samples
                 self.twisted_conn.samplesReceived()
-                self.samples_to_produce = self.p_size
+                self.samples_to_produce = self.packet_size
             self.twisted_conn.condition.release()
             #print "DEBUG: sim_src - produced:", n_processed
             return produce_n_samples
+
+    def run_timed_cmds(self, n_cmds):
+        for i in range(n_cmds):
+            cmd, args = self.hier_blk.commands.pop()
+            #print "DEBUG: src - running cmd %s with args %s" % (cmd, args)
+            cmd(*args)
 
     def new_samples_received(self, samples):
         self.samples = numpy.append(self.samples, samples)
@@ -125,6 +155,11 @@ class sim_source_cc(gr.block):
     def set_dataport(self, port):
         self.dataport = port
         print '[INFO] WiNeLo - Port %s will be used for data transmission' % self.dataport
+
+    def set_packetsize(self, packet_size):
+        self.packet_size = packet_size
+        if self.samples_to_produce > self.packet_size:
+            self.samples_to_produce = self.packet_size
 
     def get_dataport(self):
         while self.dataport is None:
@@ -169,11 +204,13 @@ class sim_source_c(gr.hier_block2, uhd_gate):
         uhd_gate.__init__(self)
         self.simulation = simulation
         self.serverip = serverip
+        self.samp_rate = samp_rate
+        self.typ = 'rx'
         if not self.simulation:
             self.usrp = uhd.usrp_source(device_addr, stream_args)  # TODO: Parameters
             self.connect(self.usrp, self)
         else:
-            self.simsrc = sim_source_cc(serverip, serverport, clientname,
+            self.simsrc = sim_source_cc(self, serverip, serverport, clientname,
                                         packetsize, samp_rate, center_freq)
             # TODO: dirty hack!!!
             #self.tcp_source = grc_blks2.tcp_source(itemsize=gr.sizeof_gr_complex,

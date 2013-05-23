@@ -72,6 +72,8 @@ class Sync(Protocol):
         # self.factory provides the information of all connections
         # to this client
         self.factory = factory
+        self.sim_bandwidth = self.factory.args.bandwidth
+        self.sim_centerfreq = self.factory.args.centerfreq
         # flag that is relevant for txs. The flag is set when all requested
         # samples have arrived and were passed to the channel flowgraph
         self.samples_passed_2_gr = False
@@ -184,6 +186,8 @@ class Sync(Protocol):
 
             # Call different methods, depending of the header.
             try:
+                #if header != "ack":
+                #    print "DEBUG: received header %s, payload %s" % (header, payload)
                 handleheaders[header](payload)
             except KeyError:
                 # This should never happen. Just some debug output.
@@ -209,15 +213,15 @@ class Sync(Protocol):
                                                        self.info['dataport'],
                                                        self.info['centerfreq'],
                                                        self.info['samprate'],
-                                                       self.factory.args.bandwidth,
-                                                       self.factory.args.centerfreq)
+                                                       self.sim_bandwidth,
+                                                       self.sim_centerfreq)
         else:
             self.info['block'] = winelo.server.gr2tw_c(self, "127.0.0.1",
                                                        self.info['dataport'],
                                                        self.info['centerfreq'],
                                                        self.info['samprate'],
-                                                       self.factory.args.bandwidth,
-                                                       self.factory.args.centerfreq)
+                                                       self.sim_bandwidth,
+                                                       self.sim_centerfreq)
 
     def setName(self, name):
         """
@@ -230,18 +234,34 @@ class Sync(Protocol):
         Sets the sample rate of this client
         """
         self.info['samprate'] = float(samp_rate)
+        self.info['resample'] = self.sim_bandwidth / float(samp_rate)
+        # TODO: Check if integer multiple!
 
     def setCenterFreq(self, center_freq):
         """
         Sets the center frequency of this client
         """
         self.info['centerfreq'] = float(center_freq)
+        freq_shift = float(center_freq) - self.sim_centerfreq
+        #print "DEBUG: RECEIVED CENTER FREQ"
+        if self.info['resample'] != 1.0:
+            if self.info['type'] == 'rx':
+                #print "DEBUG: RX change center freq!"
+                self.info['block'].channel_filter.set_center_freq(float(freq_shift))
+            else:
+                #print "DEBUG: TX change center freq!"
+                self.info['block'].virt_lo.set_frequency(float(freq_shift))
+        else:
+            print ("[WARNING] WiNeLo - Called set_center_freq, but simulation "
+                   "bandwidth = app bandwidth")
+            print "[WARNING] WiNeLo - Won't change center frequency!"
 
     def setPacketSize(self, packet_size):
         """
         Sets the packet size of this client and registers the client
         """
-        self.info['packet_size'] = int(packet_size)
+        self.info['packet_size'] = int(int(packet_size) / self.info['resample'])
+        #print "DEBUG: ---------- set packet size %s for node %s" % (self.info['packet_size'], self.info['name'])
         # All relevant information about this clien was received. Teardown the
         # current GNU Radio channel flowgraph and connect this client to the new channel
         # flowgraph.

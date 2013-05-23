@@ -1,6 +1,6 @@
 import numpy
 
-from gnuradio import gr
+from gnuradio import gr, analog, blocks, filter
 from grc_gnuradio import blks2 as grc_blks2
 # import grextras for python blocks
 import gnuradio.extras
@@ -46,26 +46,24 @@ class tw2gr_cc(gr.block):
 #                    return 0
         if len(input_items[0]) < len(output_items[0]):
             n_processed = len(input_items[0])
-            output_items[0][0:n_processed] = input_items[0][0:n_processed]
-            #self.twisted_conn.condition.release()
-            self.timeout_start = None
-            self.twisted_conn.sampled_passed_2_gr = True
             #print "DEBUG: tw2gr - elif - items processed:", n_processed
         else:
             n_processed = len(output_items[0])
-            output_items[0][0:n_processed] = input_items[0][0:n_processed]
+            #output_items[0][0:n_processed] = input_items[0][0:n_processed]
             #self.twisted_conn.condition.release()
-            self.timeout_start = None
-            self.twisted_conn.sampled_passed_2_gr = True
+            #self.timeout_start = None
+            #self.twisted_conn.sampled_passed_2_gr = True
             #print "DEBUG: tw2gr - else - items processed:", n_processed
+
+        output_items[0][0:n_processed] = input_items[0][0:n_processed]
+        #self.twisted_conn.condition.release()
+        self.timeout_start = None
+        self.twisted_conn.sampled_passed_2_gr = True
 
         self.dbg_samp_count += n_processed
         #print "DEBUG: tw2gr - produced_items:", self.dbg_samp_count
         #print output_items[0]
         return n_processed
-
-    def stop(self):
-        print "DEBUG: tw2gr - stop called"
 
 
 class tw2gr_c(gr.hier_block2):
@@ -73,7 +71,7 @@ class tw2gr_c(gr.hier_block2):
     Connects a TCP sink to gr2tw_c.
     """
     def __init__(self, twisted_con, tcp_addr, tcp_port, app_center_freq,
-                 app_samp_rate, sim_bw, center_freq):
+                 app_samp_rate, sim_bw, sim_center_freq):
         gr.hier_block2.__init__(self, "tw2gr_c",
                                 gr.io_signature(0, 0, 0),
                                 gr.io_signature(1, 1, gr.sizeof_gr_complex))
@@ -85,5 +83,25 @@ class tw2gr_c(gr.hier_block2):
         self.tcp_source = gr.udp_source(itemsize=gr.sizeof_gr_complex,
                                         host=str(tcp_addr),
                                         port=tcp_port)
+
         print "Connecting tw2gr..."
-        self.connect(self.tcp_source, self.tw2gr, self)
+        if app_samp_rate < sim_bw:
+            interpolation = sim_bw / app_samp_rate
+            if interpolation % 1 is not 0:
+                print "[ERROR] WiNeLo - Simulation bandwidth is not an integer multiple of app sample rate: %s" % interpolation
+            else:
+                print "[INFO] WiNeLo - Using Interpolation of %s for this node!" % int(interpolation)
+            freq_shift = app_center_freq - sim_center_freq
+            #print "DEBUG: freq_shift %s" % freq_shift
+            self.channel_filter = filter.pfb.interpolator_ccf(int(interpolation), (gr.firdes.low_pass_2(int(interpolation), sim_bw, app_samp_rate / 2, app_samp_rate/5, 60, window=gr.firdes.WIN_BLACKMAN_hARRIS)))
+            #self.channel_filter = blocks.repeat(gr.sizeof_gr_complex*1, int(interpolation))
+            #self.connect(self.tcp_source, self.tw2gr, self.channel_filter, self)
+            self.virt_lo = analog.sig_source_c(sim_bw, analog.GR_COS_WAVE, freq_shift, 1, 0)
+            self.multiply = blocks.multiply_vcc(1)
+            self.connect(self.tcp_source, self.tw2gr, self.channel_filter, (self.multiply, 0))
+            self.connect(self.virt_lo, (self.multiply, 1))
+            self.connect(self.multiply, self)
+        elif app_samp_rate == sim_bw:
+            self.connect(self.tcp_source, self.tw2gr, self)
+        else:
+            print "[ERROR] WiNeLo - Simulation bandwidth too small!"

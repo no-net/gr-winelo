@@ -26,25 +26,27 @@ class gr2tw_cc(gr.block):
         # if the number of input_items is larger than the packet_size, send a
         # packet to the receivers. Otherwise don't do anything
         if len(input_items[0]) >= packet_size:
+            n_processed = packet_size
             #print "packet-size:", packet_size
             #print "DEBUG GR2TW full - port:", self.port
             #print "DEBUG: gr2tw - packet sent"
             #print "DEBUG: gr2tw - len out: %s " % len(output_items[0])
             #print "DEBUG: gr2tw - len in: %s " % len(input_items[0])
-            output_items[0][0:packet_size] = input_items[0][0:packet_size]  # [0:packet_size]
-            return packet_size
         elif len(input_items[0]) > 0:
             #print "DEBUG GR2TW part - port:", self.port
             #print "DEBUG: gr2tw - NO packet sent - len input_items:", len(input_items[0])
-            output_items[0][0:len(input_items[0])] = input_items[0][:]
+            n_processed = len(input_items[0])
             #output_items[0] = packet_size * [0]
-            return len(input_items[0])
+            #return len(input_items[0])
         else:
             print "DEBUG: gr2tw - no input_items to produce out_items"
             return 0
 
-    def stop(self):
-        print "DEBUG: gr2tw - stop called"
+        if n_processed > len(output_items[0]):
+            n_processed = len(output_items[0])
+
+        output_items[0][0:n_processed] = input_items[0][0:n_processed]  # [0:packet_size]
+        return n_processed
 
 
 class gr2tw_c(gr.hier_block2):
@@ -65,8 +67,7 @@ class gr2tw_c(gr.hier_block2):
                                     host=tcp_addr,
                                     port=tcp_port)
 
-        print "DEBUG: gr2tw - app_samp_rate %s - sim_bw: %s" % (app_samp_rate, sim_bw)
-
+        #print "DEBUG: gr2tw - app_samp_rate %s - sim_bw: %s" % (app_samp_rate, sim_bw)
         if app_samp_rate < sim_bw:
             decimation = sim_bw / app_samp_rate
             if decimation % 1 is not 0:
@@ -74,9 +75,9 @@ class gr2tw_c(gr.hier_block2):
             else:
                 print "[INFO] WiNeLo - Using Decimation of %s for this node!" % int(decimation)
             freq_shift = app_center_freq - sim_center_freq
-            print "DEBUG: freq_shift %s" % freq_shift
-            xlating_fir_filter = filter.freq_xlating_fir_filter_ccc(int(decimation), (gr.firdes.low_pass_2(1, sim_bw, app_samp_rate / 2, app_samp_rate/20, 80, window=gr.firdes.WIN_BLACKMAN_hARRIS)), freq_shift, sim_bw)
-            self.connect(self, gr2tw, xlating_fir_filter, self.tcp_sink)
+            #print "DEBUG: freq_shift %s" % freq_shift
+            self.channel_filter = filter.freq_xlating_fir_filter_ccc(int(decimation), (gr.firdes.low_pass_2(1, sim_bw, app_samp_rate / 2, app_samp_rate/5, 60, window=gr.firdes.WIN_BLACKMAN_hARRIS)), freq_shift, sim_bw)
+            self.connect(self, gr2tw, self.channel_filter, self.tcp_sink)
         elif app_samp_rate == sim_bw:
             self.connect(self, gr2tw, self.tcp_sink)
         else:

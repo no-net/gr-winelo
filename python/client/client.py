@@ -80,6 +80,7 @@ class SendStuff(Protocol):
                 self.dataRequest(int(payload))
             elif header == 'packetsize':
                 payload, self.data = rest.split('EOP', 1)
+                self.packetsizeReceived(int(payload))
                 self.packet_size = int(payload)
             elif header == 'dataport':
                 payload, self.data = rest.split('EOP', 1)
@@ -109,6 +110,15 @@ class SendStuff(Protocol):
         """
         self.condition.acquire()
         self.flowgraph.set_dataport(dataport)
+        self.condition.notify()
+        self.condition.release()
+
+    def packetsizeReceived(self, packet_size):
+        """
+        Set port used for tcp source/sink.
+        """
+        self.condition.acquire()
+        self.flowgraph.set_packetsize(packet_size)
         self.condition.notify()
         self.condition.release()
 
@@ -148,6 +158,9 @@ class uhd_gate(object):
     def __init__(self, gain_range=(0, 45, 0.05), center_freq=100000000):
         self.gain_range = gain_range
         self.center_freq = center_freq
+        self.collecting_timed_commands = False
+        self.commands = []
+        self.command_times = []
 
     def set_start_time(self, uhd_time):
         if self.simulation:
@@ -198,7 +211,18 @@ class uhd_gate(object):
 
     def set_center_freq(self, freq, chan=0):
         if self.simulation:
-            print "Set freq on server"  # TODO: Set freq on server -> multiple channels!
+            #print "Set freq on server"  # TODO: Set freq on server -> multiple channels!
+            if not self.collecting_timed_commands:
+                if self.typ == 'rx':
+                    reactor.callFromThread(self.simsrc.twisted_conn.transport.write, ('centerfreqEOH' + str(freq) + 'EOP'))
+                else:
+                    reactor.callFromThread(self.simsnk.twisted_conn.transport.write, ('centerfreqEOH' + str(freq) + 'EOP'))
+            else:
+                #print "DEBUG: appending command - cmd-times %s - cmds %s!" % (self.command_times, self.commands)
+                self.commands.append([self.set_center_freq, [freq, chan]])
+                #print "DEBUG"
+                self.command_times[-1][1] += 1
+                #print "DEBUG: cmd times:", self.command_times
         else:
             self.usrp.set_center_freq(freq, chan)
 
@@ -400,12 +424,15 @@ class uhd_gate(object):
 
     def set_command_time(self, time_spec, mboard=0):
         if self.simulation:
-            print 'Set WiNeLo-commandtime'  # TODO: Send command-time to server!
+            #print 'Set WiNeLo-commandtime: %s' % time_spec.get_real_secs()  # TODO: Send command-time to server!
+            self.command_times.append([time_spec.get_real_secs(), 0])
+            self.collecting_timed_commands = True
         else:
             self.usrp.set_command_time(time_spec, mboard)
 
     def clear_command_time(self, mboard=0):
         if self.simulation:
-            print 'clear WiNeLo-commandtime'  # TODO: Clear command-time on server!
+            #print 'clear WiNeLo-commandtime'  # TODO: Clear command-time on server!
+            self.collecting_timed_commands = False
         else:
             self.usrp.clear_command_time(mboard)
