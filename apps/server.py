@@ -241,15 +241,16 @@ class Sync(Protocol):
         """
         Sets the center frequency of this client
         """
+        #print "DEBUG: client %s got center_freq %s" % (self.info['name'], center_freq)
         self.info['centerfreq'] = float(center_freq)
         freq_shift = float(center_freq) - self.sim_centerfreq
-        #print "DEBUG: RECEIVED CENTER FREQ"
+        #print "DEBUG: RECEIVED CENTER FREQ from node %s - shift: %s" % (self.info['name'], freq_shift)
         if self.info['resample'] != 1.0:
             if self.info['type'] == 'rx':
-                #print "DEBUG: RX change center freq!"
+                #print "DEBUG: RX change center freq - shift:", float(freq_shift)
                 self.info['block'].channel_filter.set_center_freq(float(freq_shift))
             else:
-                #print "DEBUG: TX change center freq!"
+                #print "DEBUG: TX change center freq - shift:", float(freq_shift)
                 self.info['block'].virt_lo.set_frequency(float(freq_shift))
         else:
             print ("[WARNING] WiNeLo - Called set_center_freq, but simulation "

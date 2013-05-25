@@ -58,7 +58,7 @@ class sim_sink_cc(gr.basic_block):
         # Virtual USRP register
         self.virtual_counter = 0
         self.virtual_time = 0
-        self.realtime_multiplicator = 3.0
+        self.realtime_multiplicator = 1.0
         #TODO: DEBUG
         self.dbg_counter = 0
         self.dbg_samp_count = 0
@@ -192,6 +192,7 @@ class sim_sink_cc(gr.basic_block):
                 # TODO: REmove this ugly hack (UDP loss)
                 if n_requested_samples is 0:
                     self.n_requested_samples = self.packet_size
+                    self.consume(0, 0)
                     return 0
                 #self.n_requested_samples = 4096  # TODO: packetsize!
             # TODO: evtl. drop packets while zero-padding!
@@ -258,6 +259,7 @@ class sim_sink_cc(gr.basic_block):
                     n_produced = len(input_items[0])
                     #print "---DEBUG: len out", len(output_items[0])
                     self.got_sob = False
+                time.sleep(self.realtime_multiplicator / self.samp_rate * n_produced / 2)
                 self.consume(0, n_produced)
                 if self.samples_to_tx > 0:
                     self.samples_to_tx -= n_produced
@@ -269,6 +271,7 @@ class sim_sink_cc(gr.basic_block):
             #elif not self.got_sob_eob:
             #elif not self.got_sob:
             elif self.no_input_counter == self.max_no_input:
+            ###elif self.no_input_counter < self.max_no_input:
                 # Get the simulation running if no input_items are available
                 # and we didn't get an eob/sob tag
                 dbg = "elif3"
@@ -293,12 +296,15 @@ class sim_sink_cc(gr.basic_block):
                 output_items[0][0:samples_to_produce] = samples_to_produce * [0]
                 n_produced = samples_to_produce
                 self.zeros_to_produce -= n_produced
-                time.sleep(self.realtime_multiplicator / self.samp_rate * n_produced)
+                #time.sleep(self.realtime_multiplicator / self.samp_rate * n_produced)
                 self.no_input_counter = 0
+                ###self.no_input_counter += 1
                 break
             else:
                 self.no_input_counter += 1
-                #time.sleep(self.realtime_multiplicator / self.samp_rate * self.packet_size / 8)
+                if self.no_input_counter == self.max_no_input:
+                    time.sleep(self.realtime_multiplicator / self.samp_rate * self.packet_size)
+                self.consume(0, 0)
                 return 0
        #     else:
                 # Wait for input with sob tag
@@ -456,14 +462,15 @@ class sim_sink_c(gr.hier_block2, uhd_gate):
         else:
             self.simsnk = sim_sink_cc(self, serverip, serverport, clientname,
                                       packetsize, samp_rate, center_freq)
-            #self.tcp_sink = grc_blks2.tcp_sink(itemsize=gr.sizeof_gr_complex,
-            #                                   addr=serverip,
-            #                                   port=self.simsnk.get_dataport(),
-            #                                   server=False)
+#            self.tcp_sink = grc_blks2.tcp_sink(itemsize=gr.sizeof_gr_complex,
+#                                               addr=serverip,
+#                                               port=self.simsnk.get_dataport(),
+#                                               server=False)
             self.tcp_sink = gr.udp_sink(itemsize=gr.sizeof_gr_complex,
                                         host=str(serverip),
-                                        port=self.simsnk.get_dataport()
-                                        )
+                                        port=self.simsnk.get_dataport(),
+                                        payload_size=1472,
+                                        eof=False)
             self.gain_blk = gr.multiply_const_vcc((1, ))
             self.heartbeat = heart_beat(0.1, "", "")
             self.connect(self.heartbeat, (self.simsnk, 1))

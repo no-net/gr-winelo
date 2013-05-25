@@ -213,12 +213,15 @@ class sim_source_c(gr.hier_block2, uhd_gate):
             self.simsrc = sim_source_cc(self, serverip, serverport, clientname,
                                         packetsize, samp_rate, center_freq)
             # TODO: dirty hack!!!
-            #self.tcp_source = grc_blks2.tcp_source(itemsize=gr.sizeof_gr_complex,
-            #                                       addr=self.serverip,
-            #                                       port=self.simsrc.get_dataport(),
-            #                                       server=False)
+#            self.tcp_source = grc_blks2.tcp_source(itemsize=gr.sizeof_gr_complex,
+#                                                   addr=self.serverip,
+#                                                   port=self.simsrc.get_dataport(),
+#                                                   server=False)
             self.tcp_source = gr.udp_source(itemsize=gr.sizeof_gr_complex,
                                             host=self.serverip,
-                                            port=self.simsrc.get_dataport())
+                                            port=self.simsrc.get_dataport(),
+                                            payload_size=1472,
+                                            eof=False,
+                                            wait=True)
             self.gain_blk = blocks.multiply_const_vcc((1, ))
             self.connect(self.tcp_source, self.gain_blk, self.simsrc, self)

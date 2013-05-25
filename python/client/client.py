@@ -211,7 +211,7 @@ class uhd_gate(object):
 
     def set_center_freq(self, freq, chan=0):
         if self.simulation:
-            #print "Set freq on server"  # TODO: Set freq on server -> multiple channels!
+            #print "Set freq on server: ", freq  # TODO: Set freq on server -> multiple channels!
             if not self.collecting_timed_commands:
                 if self.typ == 'rx':
                     reactor.callFromThread(self.simsrc.twisted_conn.transport.write, ('centerfreqEOH' + str(freq) + 'EOP'))
