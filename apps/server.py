@@ -67,8 +67,8 @@ class Sync(Protocol):
         self.info['packet_size'] = None
         # The port is simply calculated by the number of known clients + server
         # port
-        client_no = len(factory.clients['rx'] + factory.clients['tx'])
-        self.info['dataport'] = factory.serverport + client_no + 1
+        self.client_no = len(factory.clients['rx'] + factory.clients['tx'])
+        self.info['dataport'] = factory.serverport + self.client_no + 1
         # self.factory provides the information of all connections
         # to this client
         self.factory = factory
@@ -96,7 +96,7 @@ class Sync(Protocol):
         print 'A client just connected'
         # send the currently used packet size to the client
         #self.transport.write('packetsizeEOH%iEOP' % self.factory.packet_size)
-        self.transport.write('packetsizeEOH%iEOPdataportEOH%iEOP' % (self.factory.packet_size, self.info['dataport']))
+        self.transport.write('packetsizeEOH%iEOPdataportEOH%iEOPvirttimeoffsetEOH%fEOP' % (self.factory.packet_size, self.info['dataport'], self.factory.virttime))
         #self.transport.write('dataportEOH%iEOP' % self.info['dataport'])
         # set the connect in process flag
         # No new packets of samples due to received acks from the receivers will
@@ -227,7 +227,7 @@ class Sync(Protocol):
         """
         Sets the name of this client
         """
-        self.info['name'] = name
+        self.info['name'] = name + '__' + str(self.client_no)
 
     def setSampRate(self, samp_rate):
         """
@@ -235,6 +235,8 @@ class Sync(Protocol):
         """
         self.info['samprate'] = float(samp_rate)
         self.info['resample'] = self.sim_bandwidth / float(samp_rate)
+        if self.info['resample'] > self.factory.max_resample:
+            self.factory.max_resample = self.info['resample']
         # TODO: Check if integer multiple!
 
     def setCenterFreq(self, center_freq):
@@ -262,7 +264,7 @@ class Sync(Protocol):
         Sets the packet size of this client and registers the client
         """
         self.info['packet_size'] = int(int(packet_size) / self.info['resample'])
-        #print "DEBUG: ---------- set packet size %s for node %s" % (self.info['packet_size'], self.info['name'])
+        print "DEBUG: ---------- set packet size %s for node %s - resample rate %s" % (self.info['packet_size'], self.info['name'], self.info['resample'])
         # All relevant information about this clien was received. Teardown the
         # current GNU Radio channel flowgraph and connect this client to the new channel
         # flowgraph.
@@ -326,12 +328,18 @@ class Sync(Protocol):
         # if all acks have been received and no client is currently connecting
         # or disconnecting request new data from all transmitters
         if all_acks_received and not (self.factory.connect_in_process or self.factory.disconnect_in_process):
+            # TODO: Select biggest rx-samp_rate for virt-time calculation
             for tx in self.factory.clients['tx']:
                 self.dbg_counter += 1
                 #print "DEBUG: Server Requested Samples no:", self.dbg_counter
                 reactor.callFromThread(tx.reqData, tx.factory.packet_size)
+            resample_max = 1
             for rx in self.factory.clients['rx']:
+                #if rx.info['resample'] > resample_max:
+                #    resample_max = rx.info['resample']
                 rx.ack_received = False
+            self.factory.virttime += float(self.factory.packet_size / self.factory.samp_rate) * self.factory.max_resample
+            #print "packet_size %s - virttime %s - samp_rate %s" % (self.factory.packet_size, self.factory.virttime, self.factory.samp_rate)
 
     def __str__(self):
         """
@@ -369,6 +377,9 @@ class SyncFactory(ServerFactory):
                                                 )
         self.channel_model = channel_model
         self.packet_size = self.args.packetsize
+        self.virttime = 0.0
+        self.samp_rate =self.args.bandwidth
+        self.max_resample = 1.0
         # Size of one element in packet --> numpy.complex
         self.packet_element_size = 8
         self.package_counter = 0

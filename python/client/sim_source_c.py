@@ -34,12 +34,14 @@ class sim_source_cc(gr.block):
         self.virtual_counter = 0
         # Evaluated for timed commands -> can be higher/absolute (GPS time)
         self.virtual_time = 0
+        self.absolute_time = True
         self.samp_rate = samp_rate
         # Port used by tcp source/sink for sample transmission
         self.dataport = None
         self.packet_size = packetsize
         self.samples_to_produce = self.packet_size
         # TODO: DEBUG
+        #self.no_zero_counter = 0
         self.dbg_counter = 0
         # connect to the server
         reactor.connectTCP(serverip,
@@ -91,6 +93,14 @@ class sim_source_cc(gr.block):
             #else:
             output_items[0][0:produce_n_samples] = input_items[0][0:produce_n_samples]
 
+            ### DEBUG:
+            #no_zeros_last = self.no_zero_counter
+            #for item in output_items[0][0:produce_n_samples]:
+            #    if item != 0:
+            #        self.no_zero_counter += 1
+            #if self.no_zero_counter != no_zeros_last:
+            #    print "self.no_zero_counter", self.no_zero_counter
+
             #elif len(input_items[0]) < len(output_items[0]):
             #    n_processed = len(input_items[0])
             #    output_items[0] = input_items[0]
@@ -115,6 +125,7 @@ class sim_source_cc(gr.block):
                 #print "DEBUG: time %s - n_cmds %s - virt_time %s" % (time, n_cmds, self.virtual_time)
                 while self.virtual_time > cmd_time:
                     #print "DEBUG: calling run_timed_cmds"
+                    print "DEBUG: Set RX-freq to %s at %s" % (self.hier_blk.commands[0][1], cmd_time)
                     self.hier_blk.command_times.pop(0)
                     #print "DEBUG-----------------------hier_blk_cmd_times", self.hier_blk.command_times
                     self.run_timed_cmds(n_cmds)
@@ -161,6 +172,11 @@ class sim_source_cc(gr.block):
         if self.samples_to_produce > self.packet_size:
             self.samples_to_produce = self.packet_size
 
+    def update_virttime(self, time_offset):
+        if self.absolute_time:
+            print "[INFO] WiNeLo - Setting source time to server time:", time_offset
+            self.virtual_time += time_offset
+
     def get_dataport(self):
         while self.dataport is None:
             reactor.callWhenRunning(time.sleep, 0.5)
@@ -168,7 +184,8 @@ class sim_source_cc(gr.block):
 
     def get_time_now(self):
         # Calculate time according tot the sample rate & the number of processed items
-        time = 1.0 / self.samp_rate * self.virtual_counter
+        #time = 1.0 / self.samp_rate * self.virtual_counter
+        time = self.virtual_time
         full_secs = int(time)
         frac_secs = time - int(time)
         # Return full & fractional seconds (like UHD)

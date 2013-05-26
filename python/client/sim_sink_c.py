@@ -58,6 +58,7 @@ class sim_sink_cc(gr.basic_block):
         # Virtual USRP register
         self.virtual_counter = 0
         self.virtual_time = 0
+        self.absolute_time = True
         self.realtime_multiplicator = 1.0
         #TODO: DEBUG
         self.dbg_counter = 0
@@ -295,6 +296,7 @@ class sim_sink_cc(gr.basic_block):
 
                 output_items[0][0:samples_to_produce] = samples_to_produce * [0]
                 n_produced = samples_to_produce
+                ###n_produced = 0
                 self.zeros_to_produce -= n_produced
                 #time.sleep(self.realtime_multiplicator / self.samp_rate * n_produced)
                 self.no_input_counter = 0
@@ -326,6 +328,7 @@ class sim_sink_cc(gr.basic_block):
             #print "DEBUG: time %s - n_cmds %s - virt_time %s" % (time, n_cmds, self.virtual_time)
             while self.virtual_time > cmd_time:
                 #print "DEBUG: calling run_timed_cmds"
+                print "DEBUG: Set TX-freq to %s at %s" % (self.hier_blk.commands[0][1], cmd_time)
                 self.hier_blk.command_times.pop(0)
                 #print "DEBUG-----------------------hier_blk_cmd_times", self.hier_blk.command_times
                 self.run_timed_cmds(n_cmds)
@@ -386,6 +389,12 @@ class sim_sink_cc(gr.basic_block):
     def set_packetsize(self, packet_size):
         #print "DEBUG: Set packetsize"
         self.packet_size = packet_size
+
+    def update_virttime(self, time_offset):
+        if self.absolute_time:
+            print "[INFO] WiNeLo - Setting sink time to server time:", time_offset
+            self.last_eob = int(time_offset * self.samp_rate)
+            self.virtual_time += time_offset
 
     def get_dataport(self):
         while self.dataport is None:

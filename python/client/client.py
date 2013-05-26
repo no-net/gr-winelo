@@ -85,6 +85,9 @@ class SendStuff(Protocol):
             elif header == 'dataport':
                 payload, self.data = rest.split('EOP', 1)
                 self.dataportReceived(int(payload))
+            elif header == 'virttimeoffset':
+                payload, self.data = rest.split('EOP', 1)
+                self.virttimeReceived(float(payload))
             else:
                 print '[ERROR] WiNeLo - a header was not decoded correctly'
 
@@ -119,6 +122,15 @@ class SendStuff(Protocol):
         """
         self.condition.acquire()
         self.flowgraph.set_packetsize(packet_size)
+        self.condition.notify()
+        self.condition.release()
+
+    def virttimeReceived(self, virttime_offset):
+        """
+        Set port used for tcp source/sink.
+        """
+        self.condition.acquire()
+        self.flowgraph.update_virttime(virttime_offset)
         self.condition.notify()
         self.condition.release()
 
