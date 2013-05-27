@@ -55,9 +55,11 @@ class sim_sink_cc(gr.basic_block):
         self.got_sob_eob = False
         #self.got_sob = False
         self.last_sob_offset = 0
+        self.waiting_for_eob = False
         # Virtual USRP register
         self.virtual_counter = 0
         self.virtual_time = 0
+        self.virt_offset = 0
         self.absolute_time = True
         self.realtime_multiplicator = 1.0
         #TODO: DEBUG
@@ -96,19 +98,6 @@ class sim_sink_cc(gr.basic_block):
         #print "DEBUG: len input:", len(input_items[0])
         #print "DEBUG: n_req_samples:", self.n_requested_samples
 
-        #if not (self.produce_zeros or self.produce_zeros_next):
-        if self.samples_to_tx == 0 and not (self.produce_zeros or self.produce_zeros_next):
-            self.tags = {'tx_time': [],
-                        'tx_sob': [],
-                        'tx_eob': []
-                        }
-            self.evaluate_timestamps(self.nitems_read(0), len(input_items[0]))
-            #print "DEBUG: Evaluating timestamps..."
-            #print "---- samples_to_tx:", self.samples_to_tx
-            #print "zeros_to_produce:", self.zeros_to_produce
-            #print "produce_zeros:", self.produce_zeros
-            #print "produce_zeros_next:", self.produce_zeros_next
-
         if self.produce_zeros_next:
             self.produce_zeros = True
             self.produce_zeros_next = False
@@ -118,6 +107,26 @@ class sim_sink_cc(gr.basic_block):
         if self.produce_zeros and (self.zeros_to_produce == 0):
             self.produce_zeros = False
             #print "DEBUG: Stopped zero-padding"
+
+        #if not (self.produce_zeros or self.produce_zeros_next):
+        #evaluated_timestamp = False
+        #eval_stt = self.samples_to_tx
+        #eval_pro_zer = self.produce_zeros
+        #eval_pro_nex = self.produce_zeros_next
+        if (self.samples_to_tx <= 0) and not (self.produce_zeros or self.produce_zeros_next):
+            self.tags = {'tx_time': [],
+                        'tx_sob': [],
+                        'tx_eob': []
+                        }
+            self.evaluate_timestamps(self.nitems_read(0), len(input_items[0]))
+            evaluated_timestamp = True
+            #print "DEBUG: Evaluating timestamps..."
+            #print "---- samples_to_tx:", self.samples_to_tx
+            #print "zeros_to_produce:", self.zeros_to_produce
+            #print "produce_zeros:", self.produce_zeros
+            #print "produce_zeros_next:", self.produce_zeros_next
+        #else:
+            #print '++++++++++ Not evaluating timestamps:', self.samples_to_tx, self.produce_zeros, self.produce_zeros_next
 
         # Get no. zeros to produce
         dhg_late = False
@@ -141,10 +150,12 @@ class sim_sink_cc(gr.basic_block):
             #time.sleep(30)
 
         # Switch back to non-padding
-        if len(self.tags['tx_sob']) >= 1 and not self.produce_zeros_next:
+        if len(self.tags['tx_sob']) >= 1:
             self.last_sob_offset = self.tags['tx_sob'].pop(0)
-            input_items[0] = input_items[0][self.last_sob_offset:]
+            #print "DEBUG: set last_sob_offset:", self.last_sob_offset
+            ###input_items[0] = input_items[0][self.last_sob_offset:]
             self.got_sob_eob = True
+            self.got_sob = True
         #elif len(self.tags['tx_sob']) > 1:
             #print "ERROR: Too much tx_sob-TAGs in work-call!"
             #time.sleep(30)
@@ -155,11 +166,18 @@ class sim_sink_cc(gr.basic_block):
             #print "Start padding of ", self.zeros_to_produce, " zeros"
             eob_offset = self.tags['tx_eob'].pop(0)  # TODO: Check if offset-1 or offset!
             #print "DEBUG: self.samples_to_tx = ", eob_offset, " - ", self.last_sob_offset
-            self.samples_to_tx = eob_offset - self.last_sob_offset + 1
-            input_items[0] = input_items[0][0:self.samples_to_tx]
+            #print "DEBUG: samples_to_tx BEFORE eob:", self.samples_to_tx
+            #print "DEBUG: eob_offset: %s, last sob_offset: %s" % (eob_offset, self.last_sob_offset)
+            self.samples_to_tx += eob_offset - self.last_sob_offset + 1
+            #print "DEBUG: samples_to_tx AFTER eob:", self.samples_to_tx
+            ###input_items[0] = input_items[0][0:self.samples_to_tx]
             #print "DEBUG: Switching to zero-padding mode"
             #dhg_late = True
-            self.produce_zeros_next = True
+            #self.produce_zeros_next = True
+            if self.waiting_for_eob:
+                #print "DEBUG: Got eob after waiting for it!"
+                self.waiting_for_eob = False
+            self.got_eob = True
             #dbg_late = True
             #self.zeros_to_produce = -1
             # TODO TODO TODO: virtual_counter statt next_tx_time! (wichtig bei
@@ -236,10 +254,14 @@ class sim_sink_cc(gr.basic_block):
             # TODO TODO TODO TODO TODO: Fass diese zwei schleifen zusammen, es
             # duerfen max samples_to_tx und auch max n_req ausgegeben werden!
 
-            elif len(input_items[0]) > 0 and not self.produce_zeros_next and (n_requested_samples > 0):
+            elif len(input_items[0]) > 0 and (n_requested_samples > 0) and not self.produce_zeros:
                 # Move samples from the input to the output
                 #print "DEBUG: else - req samples:", n_requested_samples
-                #print "DEBUG: elif2"
+                #print "DEBUG: elif2", self.produce_zeros
+                #print "DEBUG: elif2i ------ eval_ts %s - prod zero %s - prod_zeros_next %s - samp_to_tx %s" % (evaluated_timestamp, self.produce_zeros, self.produce_zeros_next, self.samples_to_tx)
+                #print "++++++samples_to_tx", eval_stt
+                #print "++++++produce_zeros", eval_pro_zer
+                #print "++++++produce_zeros_next", eval_pro_nex
                 dbg = "elif2"
                 if self.samples_to_tx <= n_requested_samples and self.samples_to_tx > 0:
                     samples_to_produce = self.samples_to_tx
@@ -259,11 +281,20 @@ class sim_sink_cc(gr.basic_block):
                     output_items[0][0:len(input_items[0])] = input_items[0][:]
                     n_produced = len(input_items[0])
                     #print "---DEBUG: len out", len(output_items[0])
-                    self.got_sob = False
                 time.sleep(self.realtime_multiplicator / self.samp_rate * n_produced / 2)
                 self.consume(0, n_produced)
-                if self.samples_to_tx > 0:
-                    self.samples_to_tx -= n_produced
+                #if self.samples_to_tx >= 0:
+                self.samples_to_tx -= n_produced
+                if self.samples_to_tx == 0:
+                    #self.waiting_for_eob = False
+                    self.produce_zeros_next = True
+                if self.samples_to_tx < 0:
+                    self.waiting_for_eob = True
+                if self.samples_to_tx >= 0:
+                    self.got_sob = False
+                #print "DEBUG: produced - samples_to_tx:", self.samples_to_tx
+                #print " ---DEBUG: waiting_for_eob:", self.waiting_for_eob
+                #print " ---DEBUG: virt_counter:", self.virtual_counter
                 # TODO: Produce maximum samples_to_tx output items!!!
                 #print "DEBUG: Consumed", len(output_items[0]), "items."
                 #self.consume(0, len(output_items[0]))
@@ -271,7 +302,7 @@ class sim_sink_cc(gr.basic_block):
                 break
             #elif not self.got_sob_eob:
             #elif not self.got_sob:
-            elif self.no_input_counter == self.max_no_input:
+            elif self.no_input_counter == self.max_no_input and not self.waiting_for_eob:
             ###elif self.no_input_counter < self.max_no_input:
                 # Get the simulation running if no input_items are available
                 # and we didn't get an eob/sob tag
@@ -326,9 +357,10 @@ class sim_sink_cc(gr.basic_block):
             #print "DEBUG: evaluating cmd times"
             cmd_time, n_cmds = self.hier_blk.command_times[0]
             #print "DEBUG: time %s - n_cmds %s - virt_time %s" % (time, n_cmds, self.virtual_time)
-            while self.virtual_time > cmd_time:
+            while self.virtual_time + (1.5*0.004096) > cmd_time:
                 #print "DEBUG: calling run_timed_cmds"
-                print "DEBUG: Set TX-freq to %s at %s" % (self.hier_blk.commands[0][1], cmd_time)
+                #print "DEBUG: Set TX-freq to %s at %s" % (self.hier_blk.commands[0][1], cmd_time)
+                #print "DEBUG: virtual counter:", self.virtual_counter
                 self.hier_blk.command_times.pop(0)
                 #print "DEBUG-----------------------hier_blk_cmd_times", self.hier_blk.command_times
                 self.run_timed_cmds(n_cmds)
@@ -395,6 +427,7 @@ class sim_sink_cc(gr.basic_block):
             print "[INFO] WiNeLo - Setting sink time to server time:", time_offset
             self.last_eob = int(time_offset * self.samp_rate)
             self.virtual_time += time_offset
+            self.virt_offset = time_offset
 
     def get_dataport(self):
         while self.dataport is None:

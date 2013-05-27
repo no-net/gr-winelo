@@ -34,6 +34,7 @@ class sim_source_cc(gr.block):
         self.virtual_counter = 0
         # Evaluated for timed commands -> can be higher/absolute (GPS time)
         self.virtual_time = 0
+        self.virt_offset = 0
         self.absolute_time = True
         self.samp_rate = samp_rate
         # Port used by tcp source/sink for sample transmission
@@ -123,9 +124,10 @@ class sim_source_cc(gr.block):
                 #print "DEBUG: evaluating cmd times"
                 cmd_time, n_cmds = self.hier_blk.command_times[0]
                 #print "DEBUG: time %s - n_cmds %s - virt_time %s" % (time, n_cmds, self.virtual_time)
-                while self.virtual_time > cmd_time:
+                while self.virtual_time + (1.5*0.004096) > cmd_time:
                     #print "DEBUG: calling run_timed_cmds"
-                    print "DEBUG: Set RX-freq to %s at %s" % (self.hier_blk.commands[0][1], cmd_time)
+                    #print "DEBUG: Set RX-freq to %s at %s" % (self.hier_blk.commands[0][1], cmd_time)
+                    #print "DEBUG: virtual counter:", self.virtual_counter
                     self.hier_blk.command_times.pop(0)
                     #print "DEBUG-----------------------hier_blk_cmd_times", self.hier_blk.command_times
                     self.run_timed_cmds(n_cmds)
@@ -176,6 +178,7 @@ class sim_source_cc(gr.block):
         if self.absolute_time:
             print "[INFO] WiNeLo - Setting source time to server time:", time_offset
             self.virtual_time += time_offset
+            self.virt_offset = time_offset
 
     def get_dataport(self):
         while self.dataport is None:

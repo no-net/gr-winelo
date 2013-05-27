@@ -79,7 +79,7 @@ class gr2tw_c(gr.hier_block2):
                 print "[INFO] WiNeLo - Using Decimation of %s for this node!" % int(decimation)
             freq_shift = app_center_freq - sim_center_freq
             #print "DEBUG: freq_shift %s" % freq_shift
-            self.channel_filter = filter.freq_xlating_fir_filter_ccc(int(decimation), (gr.firdes.low_pass_2(1, sim_bw, (app_samp_rate / 2), app_samp_rate/200, 120, window=gr.firdes.WIN_BLACKMAN_hARRIS)), freq_shift, sim_bw)
+            self.channel_filter = filter.freq_xlating_fir_filter_ccc(int(decimation), (gr.firdes.low_pass_2(1, sim_bw, (app_samp_rate / 2), app_samp_rate/10, 120, window=gr.firdes.WIN_BLACKMAN_hARRIS)), freq_shift, sim_bw)
             self.connect(self, gr2tw, self.channel_filter, self.tcp_sink)
         elif app_samp_rate == sim_bw:
             self.connect(self, gr2tw, self.tcp_sink)

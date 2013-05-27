@@ -97,7 +97,7 @@ class tw2gr_c(gr.hier_block2):
                 print "[INFO] WiNeLo - Using Interpolation of %s for this node!" % int(interpolation)
             freq_shift = app_center_freq - sim_center_freq
             #print "DEBUG: freq_shift %s" % freq_shift
-            self.channel_filter = filter.pfb.interpolator_ccf(int(interpolation), (gr.firdes.low_pass_2(int(interpolation), sim_bw, (app_samp_rate / 2), app_samp_rate/200, 120, window=gr.firdes.WIN_BLACKMAN_hARRIS)))
+            self.channel_filter = filter.pfb.interpolator_ccf(int(interpolation), (gr.firdes.low_pass_2(int(interpolation), sim_bw, (app_samp_rate / 2), app_samp_rate/10, 120, window=gr.firdes.WIN_BLACKMAN_hARRIS)))
             #self.channel_filter = blocks.repeat(gr.sizeof_gr_complex*1, int(interpolation))
             #self.connect(self.tcp_source, self.tw2gr, self.channel_filter, self)
             self.virt_lo = analog.sig_source_c(sim_bw, analog.GR_COS_WAVE, freq_shift, 1, 0)
