@@ -221,17 +221,17 @@ class uhd_gate(object):
         else:
             return self.usrp.get_samp_rate()
 
-    def set_center_freq(self, freq, chan=0):
+    def set_center_freq(self, freq, chan=0, collected_cmd=False):
         if self.simulation:
             #print "Set freq on server: ", freq  # TODO: Set freq on server -> multiple channels!
-            if not self.collecting_timed_commands:
+            if not self.collecting_timed_commands or collected_cmd:
                 if self.typ == 'rx':
                     reactor.callFromThread(self.simsrc.twisted_conn.transport.write, ('centerfreqEOH' + str(freq) + 'EOP'))
                 else:
                     reactor.callFromThread(self.simsnk.twisted_conn.transport.write, ('centerfreqEOH' + str(freq) + 'EOP'))
             else:
                 #print "DEBUG: appending command - cmd-times %s - cmds %s!" % (self.command_times, self.commands)
-                self.commands.append([self.set_center_freq, [freq, chan]])
+                self.commands.append([self.set_center_freq, [freq, chan, True]])
                 #print "DEBUG"
                 self.command_times[-1][1] += 1
                 #print "DEBUG: cmd times:", self.command_times

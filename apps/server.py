@@ -247,9 +247,10 @@ class Sync(Protocol):
         self.info['centerfreq'] = float(center_freq)
         freq_shift = float(center_freq) - self.sim_centerfreq
         #print "DEBUG: RECEIVED CENTER FREQ from node %s - shift: %s" % (self.info['name'], freq_shift)
+        #print "DEBUG: Set center freq at:", self.factory.virttime
         if self.info['resample'] != 1.0:
+            #print "DEBUG: %s change center freq to %s - at: %s" % (self.info['name'] , float(center_freq), self.factory.virttime)
             if self.info['type'] == 'rx':
-                #print "DEBUG: RX change center freq - shift:", float(freq_shift)
                 self.info['block'].channel_filter.set_center_freq(float(freq_shift))
             else:
                 #print "DEBUG: TX change center freq - shift:", float(freq_shift)

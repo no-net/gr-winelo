@@ -9,6 +9,7 @@ from twisted.internet import reactor
 import thread
 from threading import Thread
 import time
+import random
 import precog
 
 from winelo.client import SendFactory, uhd_gate
@@ -62,6 +63,7 @@ class sim_sink_cc(gr.basic_block):
         self.virt_offset = 0
         self.absolute_time = True
         self.realtime_multiplicator = 1.0
+        self.drop_one_in_n_cmds = 0  # TODO: was 50 for per_measurement!
         #TODO: DEBUG
         self.dbg_counter = 0
         self.dbg_samp_count = 0
@@ -134,7 +136,7 @@ class sim_sink_cc(gr.basic_block):
             self.next_tx_time = self.tags['tx_time'].pop(0)
             #print "TX time:", self.next_tx_time, " - last eob:", self.last_eob
             #print "DEBUG: Zeros_to_produce before:", self.zeros_to_produce
-            print "[INFO] WiNeLo - Zeros to produce:", (self.next_tx_time - self.last_eob)
+            #print "[INFO] WiNeLo - Zeros to produce:", (self.next_tx_time - self.last_eob)
             #print "DEBUG: Zeros to  produce", self.zeros_to_produce
             self.zeros_to_produce += int(self.next_tx_time - self.last_eob)
             #self.got_sob = True
@@ -349,21 +351,34 @@ class sim_sink_cc(gr.basic_block):
        #         output_items[0] = []
        #         break
         self.virtual_counter += n_produced
+        ##virtual_time_before = self.virtual_time
         self.virtual_time += n_produced / float(self.samp_rate)
         # TODO TODO TODO TODO: Produce max. diff samples, then call commands before
+        ##if int(virtual_time_before / 0.5) < int(self.virtual_time / 0.5):
+            ##print "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
         # running again!
         # CHECK TIMED COMMANDS
-        if len(self.hier_blk.command_times) > 0:
+        if len(self.hier_blk.commands) > 0 and len(self.hier_blk.command_times) > 0:
             #print "DEBUG: evaluating cmd times"
             cmd_time, n_cmds = self.hier_blk.command_times[0]
             #print "DEBUG: time %s - n_cmds %s - virt_time %s" % (time, n_cmds, self.virtual_time)
-            while self.virtual_time + (1.5*0.004096) > cmd_time:
+            while self.virtual_time > (cmd_time + 0.0065):
                 #print "DEBUG: calling run_timed_cmds"
-                #print "DEBUG: Set TX-freq to %s at %s" % (self.hier_blk.commands[0][1], cmd_time)
-                #print "DEBUG: virtual counter:", self.virtual_counter
-                self.hier_blk.command_times.pop(0)
-                #print "DEBUG-----------------------hier_blk_cmd_times", self.hier_blk.command_times
-                self.run_timed_cmds(n_cmds)
+                if self.drop_one_in_n_cmds > 0:
+                    rand_no = random.randint(1, self.drop_one_in_n_cmds)
+                else:
+                    rand_no = 0
+                if rand_no == 1:
+                    self.hier_blk.command_times.pop(0)
+                    self.hier_blk.commands.pop(0)
+                    print "[INFO] WiNeLo - Dropped command due to HW model!"
+                else:
+                    #print "DEBUG: TxTxTx - Tuning cmd sent at: %s - CMD time: %s - post: %s - pre: %s" % (self.virtual_time, cmd_time, cmd_time -0.003, cmd_time + 0.005)
+                    #print "DEBUG: Set TX-freq to %s at %s" % (self.hier_blk.commands[0][1], cmd_time)
+                    #print "DEBUG: virtual counter:", self.virtual_counter
+                    self.hier_blk.command_times.pop(0)
+                    #print "DEBUG-----------------------hier_blk_cmd_times", self.hier_blk.command_times
+                    self.run_timed_cmds(n_cmds)
                 if len(self.hier_blk.command_times) > 0:
                     #print "DEBUG: NEW TIME, CMDS"
                     cmd_time, n_cmds = self.hier_blk.command_times[0]
