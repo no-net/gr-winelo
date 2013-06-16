@@ -43,6 +43,13 @@ class gr_channel():
         print 'Rebuilding the GNU Radio Channel'
         print 'Transmitters:', txs
         print 'Receivers:', rxs
+
+        # Connect HW models
+        for tx in txs:
+            tb.connect(tx.info['block'], tx.info['hw_model'])
+        for rx in rxs:
+            tb.connect(rx.info['hw_model'], rx.info['block'])
+
         adders = []
         for i in range(len(rxs)):
             adders.append( gr.add_cc() )
@@ -71,14 +78,16 @@ class gr_channel():
             print 'Making connections for %s' % rx.info['name']
             for tx_idx, tx in enumerate(txs):
                 print '==> Connecting source of %s to its channel' % tx.info['name']
-                tb.connect(tx.info['block'], tx.info['channels'][rx.info['name']])
+                tb.connect(tx.info['hw_model'], tx.info['channels'][rx.info['name']])
                 print '==> Connecting this channel to the adder at port %d' % tx_idx
                 tb.connect(tx.info['channels'][rx.info['name']], (adders[rx_idx], tx_idx))
                 print
             # check if the list txs is not empty
             if txs:
                 print 'Connecting the adder to the receiver %s' % rx.info['name']
-                tb.connect(adders[rx_idx], rx.info['block'])
+                tb.connect(adders[rx_idx], rx.info['hw_model'])
 
         print 'restarting gnuradio flowgraph'
-        tb.start()
+        # We transmitting nodes to start the simulation
+        if txs:
+            tb.start()

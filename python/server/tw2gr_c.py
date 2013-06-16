@@ -1,6 +1,6 @@
 import numpy
 
-from gnuradio import gr, analog, blocks, filter
+from gnuradio import gr, blocks
 from grc_gnuradio import blks2 as grc_blks2
 # import grextras for python blocks
 import gnuradio.extras
@@ -88,24 +88,4 @@ class tw2gr_c(gr.hier_block2):
                                         wait=True)
 
         print "Connecting tw2gr..."
-        #  TODO TODO TODO: equal just for debugging!!!
-        if app_samp_rate < sim_bw:
-            interpolation = sim_bw / app_samp_rate
-            if interpolation % 1 is not 0:
-                print "[ERROR] WiNeLo - Simulation bandwidth is not an integer multiple of app sample rate: %s" % interpolation
-            else:
-                print "[INFO] WiNeLo - Using Interpolation of %s for this node!" % int(interpolation)
-            freq_shift = app_center_freq - sim_center_freq
-            #print "DEBUG: freq_shift %s" % freq_shift
-            self.channel_filter = filter.pfb.interpolator_ccf(int(interpolation), (gr.firdes.low_pass_2(int(interpolation), sim_bw, (app_samp_rate / 2), app_samp_rate/10, 120, window=gr.firdes.WIN_BLACKMAN_hARRIS)))
-            #self.channel_filter = blocks.repeat(gr.sizeof_gr_complex*1, int(interpolation))
-            #self.connect(self.tcp_source, self.tw2gr, self.channel_filter, self)
-            self.virt_lo = analog.sig_source_c(sim_bw, analog.GR_COS_WAVE, freq_shift, 1, 0)
-            self.multiply = blocks.multiply_vcc(1)
-            self.connect(self.tcp_source, self.tw2gr, self.channel_filter, (self.multiply, 0))
-            self.connect(self.virt_lo, (self.multiply, 1))
-            self.connect(self.multiply, self)
-        elif app_samp_rate == sim_bw:
-            self.connect(self.tcp_source, self.tw2gr, self)
-        else:
-            print "[ERROR] WiNeLo - Simulation bandwidth too small!"
+        self.connect(self.tcp_source, self.tw2gr, self)

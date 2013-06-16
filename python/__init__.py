@@ -53,6 +53,7 @@ import gnuradio.extras.block_gateway
 import server
 import client
 import channel
+import hw_models
 
 # ----------------------------------------------------------------
 # Tail of workaround

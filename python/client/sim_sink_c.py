@@ -308,6 +308,7 @@ class sim_sink_cc(gr.basic_block):
             ###elif self.no_input_counter < self.max_no_input:
                 # Get the simulation running if no input_items are available
                 # and we didn't get an eob/sob tag
+                #print "Inserting zeros"
                 dbg = "elif3"
                 #print "elif3"
                 #print "len in", len(input_items[0]), "prod zeros",  self.produce_zeros_next, "req samp", n_requested_samples

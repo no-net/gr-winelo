@@ -59,6 +59,7 @@ class Sync(Protocol):
         # depending on the type, different GNU Radio blocks are used to connect
         # the client to the channel flowgraph.
         self.info['block'] = None
+        self.info['hw_model'] = None
         # Dictionary that will contain all the channels from a
         # transmitter to all receivers. The channels are accessed via the name
         # of the receiver
@@ -248,13 +249,9 @@ class Sync(Protocol):
         freq_shift = float(center_freq) - self.sim_centerfreq
         #print "DEBUG: RECEIVED CENTER FREQ from node %s - shift: %s" % (self.info['name'], freq_shift)
         #print "DEBUG: Set center freq at:", self.factory.virttime
-        if self.info['resample'] != 1.0:
+        if self.info['resample'] != 1.0 and self.info['hw_model']:
             #print "DEBUG: %s change center freq to %s - at: %s" % (self.info['name'] , float(center_freq), self.factory.virttime)
-            if self.info['type'] == 'rx':
-                self.info['block'].channel_filter.set_center_freq(float(freq_shift))
-            else:
-                #print "DEBUG: TX change center freq - shift:", float(freq_shift)
-                self.info['block'].virt_lo.set_frequency(float(freq_shift))
+            self.info['hw_model'].set_center_freq(float(freq_shift))
         else:
             print ("[WARNING] WiNeLo - Called set_center_freq, but simulation "
                    "bandwidth = app bandwidth")
@@ -288,6 +285,15 @@ class Sync(Protocol):
         print self
         print "Port %s will be used for data transmission to/from thislient" % self.info['dataport']
 
+        # Set HW modelling blocks
+        #for client in self.factory.clients['tx'], self.factory.clients['rx']:
+        self.info['hw_model'] = self.factory.hw_model(self.factory.samp_rate,
+                                                      self.info['samprate'],
+                                                      self.info['centerfreq'],
+                                                      self.sim_centerfreq,
+                                                      self.info['type'],
+                                                      **self.factory.args.hwopts)
+
         for tx in self.factory.clients['tx']:
             # new tx blocks are needed, otherwise I always received too many
             # acks. Maybe some samples were still in the flowgraph
@@ -300,6 +306,8 @@ class Sync(Protocol):
                     pass
                 else:
                     tx.info['channels'][rx.info['name']] = self.factory.channel_model(**self.factory.args.opts)
+                    # TODO: ADD PARAMETER HERE (TO CHANNEL MODEL -> WHICH
+                    # TX/RX -> Evaluate Node no.)
 
         # After a new client connected sucessfully, update the packet size which
         # will be used from now on.
@@ -365,7 +373,7 @@ class SyncFactory(ServerFactory):
     required by all clients and is in charge of synchronizing the
     different data-streams
     """
-    def __init__(self, args, channel_model):
+    def __init__(self, args, channel_model, hw_model):
         """
         Sets some global parameters for all connected clients.
         """
@@ -377,6 +385,7 @@ class SyncFactory(ServerFactory):
                                                 self.clients['rx']
                                                 )
         self.channel_model = channel_model
+        self.hw_model = hw_model
         self.packet_size = self.args.packetsize
         self.virttime = 0.0
         self.samp_rate =self.args.bandwidth
@@ -425,6 +434,12 @@ def main():
         'cost207typicalurban': winelo.channel.models.cost207.typical_urban_cc.paths_6,
         'cost207typicalurban12': winelo.channel.models.cost207.typical_urban_cc.paths_12,
         'cost207ruralarea': winelo.channel.models.cost207.rural_area_cc.paths_4}
+        # TODO: ADD NETWORK CHANNEL MODEL (EXAMPLE WITH 3 NODES)
+
+    hw_models = {
+        'none': winelo.hw_models.none_cc,
+        'mixing_only': winelo.hw_models.mixing_only_cc,
+        'basic': winelo.hw_models.basic_cc}
 
     parser = argparse.ArgumentParser(
         description='Starts the gnuradio-channel-simmulation server GRCSS.',
@@ -434,6 +449,11 @@ def main():
                         help='name of the channel model to be used. Available models are:\n' + '\n'.join(channel_models.keys()))
     parser.add_argument('--opts', '-O', action='store',
                         dest='opts', nargs='*', help='channel model parameters. Something like:\n[sample_rate 32000 fmax 100] or [k 1]')
+    parser.add_argument('--hw-model', '-H', action='store',
+                        dest='hwmodel', nargs='?',
+                        help='name of the hw model to be used. Available models are:\n' + '\n'.join(hw_models.keys()))
+    parser.add_argument('--hw-opts', '-I', action='store',
+                        dest='hwopts', nargs='*', help='hw model parameters. Something like:\n[noise_ampl 0.0001 f_offset 2000]')
     parser.add_argument('--port', '-P', type=int, action='store',
                         dest='port', nargs='?', default=8888,
                         help='the port on which the server is listening')
@@ -457,8 +477,22 @@ def main():
         except ValueError:
             pass
     channel_model = channel_models[args.model]
+    # turn the hw model parameters in a dictionary
+    if args.hwopts != None:
+        args.hwopts = dict(zip(args.hwopts[0::2], args.hwopts[1::2]))
+        for key in args.hwopts.keys():
+            # convert the parameters to float, except if the parameter is a string
+            # than float() will throw a value error and we don't have to do
+            # anything
+            try:
+                args.hwopts[key] = float(args.hwopts[key])
+            except ValueError:
+                pass
+    else:
+        args.hwopts = {}
+    hw_model = hw_models[args.hwmodel]
 
-    reactor.listenTCP(args.port, SyncFactory(args, channel_model))
+    reactor.listenTCP(args.port, SyncFactory(args, channel_model, hw_model))
     print "Server is listening on port %d" % (args.port)
     print "The initial packet size is %i" % (args.packetsize)
     reactor.run()

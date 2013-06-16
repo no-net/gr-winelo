@@ -28,6 +28,7 @@ endif()
 add_subdirectory(server)
 add_subdirectory(client)
 add_subdirectory(channel)
+add_subdirectory(hw_models)
 
 ########################################################################
 # Install python sources

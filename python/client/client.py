@@ -173,6 +173,7 @@ class uhd_gate(object):
         self.collecting_timed_commands = False
         self.commands = []
         self.command_times = []
+        self.samp_rate = 0
 
     def set_start_time(self, uhd_time):
         if self.simulation:
@@ -210,6 +211,7 @@ class uhd_gate(object):
         if self.simulation:
             print "[WARNING] WiNeLo - Not supported by WiNeLo: set_samp_rate"
             #print "Set samp_rate on server"  # DO: Set samp_rate on server
+            self.samp_rate = rate  # TODO: Really change rate of fg!
         else:
             self.usrp.set_samp_rate(rate)
 
@@ -217,7 +219,7 @@ class uhd_gate(object):
         if self.simulation:
             print "[WARNING] WiNeLo - Not supported by WiNeLo: get_samp_rate"
             #samprate_server = "rate from server"  # DO: Get samp_rate from server
-            #return samprate_server
+            return self.samp_rate  # TODO: Return real fg samp_rate!
         else:
             return self.usrp.get_samp_rate()
 
@@ -235,6 +237,7 @@ class uhd_gate(object):
                 #print "DEBUG"
                 self.command_times[-1][1] += 1
                 #print "DEBUG: cmd times:", self.command_times
+            return True
         else:
             self.usrp.set_center_freq(freq, chan)
 

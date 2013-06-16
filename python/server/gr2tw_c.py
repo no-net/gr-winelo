@@ -1,5 +1,5 @@
 import numpy
-from gnuradio import gr, filter
+from gnuradio import gr
 from grc_gnuradio import blks2 as grc_blks2
 # import grextras for python blocks
 import gnuradio.extras
@@ -69,19 +69,4 @@ class gr2tw_c(gr.hier_block2):
                                     payload_size=1472,
                                     eof=False)
 
-        #print "DEBUG: gr2tw - app_samp_rate %s - sim_bw: %s" % (app_samp_rate, sim_bw)
-        #  TODO TODO TODO: equal just for debugging!!!
-        if app_samp_rate < sim_bw:
-            decimation = sim_bw / app_samp_rate
-            if decimation % 1 is not 0:
-                print "[ERROR] WiNeLo - Simulation bandwidth is not an integer multiple of app sample rate: %s" % decimation
-            else:
-                print "[INFO] WiNeLo - Using Decimation of %s for this node!" % int(decimation)
-            freq_shift = app_center_freq - sim_center_freq
-            #print "DEBUG: freq_shift %s" % freq_shift
-            self.channel_filter = filter.freq_xlating_fir_filter_ccc(int(decimation), (gr.firdes.low_pass_2(1, sim_bw, (app_samp_rate / 2), app_samp_rate/10, 120, window=gr.firdes.WIN_BLACKMAN_hARRIS)), freq_shift, sim_bw)
-            self.connect(self, gr2tw, self.channel_filter, self.tcp_sink)
-        elif app_samp_rate == sim_bw:
-            self.connect(self, gr2tw, self.tcp_sink)
-        else:
-            print "[ERROR] WiNeLo - Simulation bandwidth too small!"
+        self.connect(self, gr2tw, self.tcp_sink)
