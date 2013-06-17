@@ -7,9 +7,9 @@ from winelo.hw_models.generic_impairments import awgn, gain, iq_imbalance, phase
 class basic_cc(gr.hier_block2):
     """ Mixing- and rate converting-only HW model.
     """
-    def __init__(self, sim_bw, app_bw, center_f, sim_center_f, client_type,
-                 f_offset=0.0, noise_ampl=0.0, gain_val=1.0, iq_mag=0.0,
-                 iq_phase=0.0, alpha=0.0, phase_noise_mag=0.0):
+    def __init__(self, net_id, sim_bw, app_bw, center_f, sim_center_f,
+                 client_type, f_offset=0.0, noise_ampl=0.0, gain_val=1.0,
+                 iq_mag=0.0, iq_phase=0.0, alpha=0.0, phase_noise_mag=0.0):
         gr.hier_block2.__init__(
             self, "Mixing-only HW model",
             gr.io_signature(1, 1, gr.sizeof_gr_complex),

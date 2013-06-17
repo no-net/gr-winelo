@@ -6,7 +6,7 @@ class paths_6(gr.hier_block2):
     """ A GNU Radio block for the COST 207 Bad Urban model with 6 paths.
     """
 
-    def __init__(self, sample_rate, fmax):
+    def __init__(self, tx_id, rx_id, sample_rate, fmax):
         gr.hier_block2.__init__(self, "COST207 Bad Urban 6 paths",
             gr.io_signature(1, 1, gr.sizeof_gr_complex),
             gr.io_signature(1, 1, gr.sizeof_gr_complex))

@@ -20,7 +20,7 @@ from winelo import heart_beat
 class sim_sink_cc(gr.basic_block):
 
     def __init__(self, hier_blk, serverip, serverport, clientname,
-                 packetsize, samp_rate, center_freq):
+                 packetsize, samp_rate, center_freq, net_id):
         gr.basic_block.__init__(
             self,
             name="WiNeLo sink",
@@ -35,6 +35,7 @@ class sim_sink_cc(gr.basic_block):
         self.n_requested_samples = 0
         # this is used to connect the block to the twisted reactor
         self.twisted_conn = None
+        self.net_id = net_id
         # Port used by tcp source/sink for sample transmission
         self.dataport = None
         self.packet_size = packetsize
@@ -52,7 +53,7 @@ class sim_sink_cc(gr.basic_block):
         self.samp_rate = samp_rate
 
         self.no_input_counter = 0
-        self.max_no_input = 5
+        self.max_no_input = 2
         self.got_sob_eob = False
         #self.got_sob = False
         self.last_sob_offset = 0
@@ -75,6 +76,7 @@ class sim_sink_cc(gr.basic_block):
                                               'name': clientname,
                                               'centerfreq': center_freq,
                                               'samprate': self.samp_rate,
+                                              'net_id': self.net_id,
                                               'packet_size': packetsize})
                            )
         # THE REACTOR MUST NOT BE STARTED MORE THAN ONCE PER FLOWGRAPH
@@ -504,9 +506,9 @@ class sim_sink_c(gr.hier_block2, uhd_gate):
 
     Connects a TCP sink to sim_source_cc.
     """
-    def __init__(self, serverip, serverport, clientname,
-                 packetsize, simulation, samp_rate, center_freq, device_addr,
-                 stream_args):
+    def __init__(self, serverip, serverport, clientname, packetsize,
+                 simulation, samp_rate, center_freq, net_id,
+                 device_addr, stream_args):
         gr.hier_block2.__init__(self, "sim_source_c",
                                 gr.io_signature(1, 1, gr.sizeof_gr_complex),
                                 gr.io_signature(0, 0, 0))
@@ -519,7 +521,8 @@ class sim_sink_c(gr.hier_block2, uhd_gate):
             self.connect(self, self.usrp)
         else:
             self.simsnk = sim_sink_cc(self, serverip, serverport, clientname,
-                                      packetsize, samp_rate, center_freq)
+                                      packetsize, samp_rate, center_freq,
+                                      net_id)
 #            self.tcp_sink = grc_blks2.tcp_sink(itemsize=gr.sizeof_gr_complex,
 #                                               addr=serverip,
 #                                               port=self.simsnk.get_dataport(),

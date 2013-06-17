@@ -5,7 +5,7 @@ class rayleigh_cc(gr.hier_block2):
     """ A GNU Radio block that models a Rayleigh channel with a Jakes PSD.
     """
 
-    def __init__(self, sample_rate, fmax):
+    def __init__(self, tx_id, rx_id, sample_rate, fmax):
         """
         Paramters:
 

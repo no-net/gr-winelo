@@ -5,7 +5,7 @@ from winelo.channel import gauss_rand_proc_c
 class paths_4(gr.hier_block2):
     """ A GNU Radio block for the COST 207 Rural Area model with 4 paths.
     """
-    def __init__(self, sample_rate, fmax):
+    def __init__(self, tx_id, rx_id, sample_rate, fmax):
         gr.hier_block2.__init__(self, "COST207 Rural Area 4 paths",
             gr.io_signature(1, 1, gr.sizeof_gr_complex),
             gr.io_signature(1, 1, gr.sizeof_gr_complex))

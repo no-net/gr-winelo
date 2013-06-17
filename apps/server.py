@@ -60,6 +60,9 @@ class Sync(Protocol):
         # the client to the channel flowgraph.
         self.info['block'] = None
         self.info['hw_model'] = None
+        # Network identification number (load directed channels, differtent
+        # HW-models
+        self.info['net_id'] = 0
         # Dictionary that will contain all the channels from a
         # transmitter to all receivers. The channels are accessed via the name
         # of the receiver
@@ -163,6 +166,7 @@ class Sync(Protocol):
         handleheaders = {'name': self.setName,
                          'centerfreq': self.setCenterFreq,
                          'samprate': self.setSampRate,
+                         'network_id': self.setNetID,
                          'type': self.setType,
                          'packet_size': self.setPacketSize,
                          'ack': self.handleAck,
@@ -249,13 +253,19 @@ class Sync(Protocol):
         freq_shift = float(center_freq) - self.sim_centerfreq
         #print "DEBUG: RECEIVED CENTER FREQ from node %s - shift: %s" % (self.info['name'], freq_shift)
         #print "DEBUG: Set center freq at:", self.factory.virttime
-        if self.info['resample'] != 1.0 and self.info['hw_model']:
+        if self.info['resample'] != 1.0 and self.info['hw_model'] != None:
             #print "DEBUG: %s change center freq to %s - at: %s" % (self.info['name'] , float(center_freq), self.factory.virttime)
             self.info['hw_model'].set_center_freq(float(freq_shift))
         else:
             print ("[WARNING] WiNeLo - Called set_center_freq, but simulation "
                    "bandwidth = app bandwidth")
             print "[WARNING] WiNeLo - Won't change center frequency!"
+
+    def setNetID(self, net_id):
+        """
+        Sets the network ID of this client
+        """
+        self.info['net_id'] = int(net_id)
 
     def setPacketSize(self, packet_size):
         """
@@ -287,7 +297,8 @@ class Sync(Protocol):
 
         # Set HW modelling blocks
         #for client in self.factory.clients['tx'], self.factory.clients['rx']:
-        self.info['hw_model'] = self.factory.hw_model(self.factory.samp_rate,
+        self.info['hw_model'] = self.factory.hw_model(self.info['net_id'],
+                                                      self.factory.samp_rate,
                                                       self.info['samprate'],
                                                       self.info['centerfreq'],
                                                       self.sim_centerfreq,
@@ -305,7 +316,10 @@ class Sync(Protocol):
                 if rx.info['name'] in tx.info['channels']:
                     pass
                 else:
-                    tx.info['channels'][rx.info['name']] = self.factory.channel_model(**self.factory.args.opts)
+                    tx.info['channels'][rx.info['name']] = \
+                            self.factory.channel_model(tx.info['net_id'],
+                                                       rx.info['net_id'],
+                                                       **self.factory.args.opts)
                     # TODO: ADD PARAMETER HERE (TO CHANNEL MODEL -> WHICH
                     # TX/RX -> Evaluate Node no.)
 
@@ -426,7 +440,7 @@ def main():
     """
 
     channel_models = {
-        'const': gr.multiply_const_cc,
+        'const': winelo.channel.models.const_cc,
         'rayleigh': winelo.channel.models.rayleigh_cc,
         'cs_meas': winelo.channel.models.cs_meas_cc,
         'cost207badurban': winelo.channel.models.cost207.bad_urban_cc.paths_6,

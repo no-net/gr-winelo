@@ -18,7 +18,7 @@ from winelo.client.tcp_blocks import tcp_source
 class sim_source_cc(gr.block):
 
     def __init__(self, hier_blk, serverip, serverport, clientname,
-                 packetsize, samp_rate, center_freq):
+                 packetsize, samp_rate, center_freq, net_id):
         gr.block.__init__(
             self,
             name="WiNeLo source",
@@ -31,6 +31,7 @@ class sim_source_cc(gr.block):
         self.samples = numpy.zeros(0)
         # this is used to connect the block to the twisted reactor
         self.twisted_conn = None
+        self.net_id = net_id
         # Needed for WiNeLo-time
         self.virtual_counter = 0
         # Evaluated for timed commands -> can be higher/absolute (GPS time)
@@ -53,6 +54,7 @@ class sim_source_cc(gr.block):
                                               'name': clientname,
                                               'centerfreq': center_freq,
                                               'samprate': self.samp_rate,
+                                              'net_id': self.net_id,
                                               'packet_size': packetsize})
                            )
         if not reactor.running:
@@ -227,8 +229,8 @@ class sim_source_c(gr.hier_block2, uhd_gate):
     Note: This is not a subclass of uhd.usrp_source because some methods
     shouldn't be available at all for this block.
     """
-    def __init__(self, serverip, serverport, clientname,
-                 packetsize, simulation, samp_rate, center_freq,
+    def __init__(self, serverip, serverport, clientname, packetsize,
+                 simulation, samp_rate, center_freq, net_id,
                  device_addr, stream_args):
         gr.hier_block2.__init__(self, "sim_source_c",
                                 gr.io_signature(0, 0, 0),
@@ -243,7 +245,8 @@ class sim_source_c(gr.hier_block2, uhd_gate):
             self.connect(self.usrp, self)
         else:
             self.simsrc = sim_source_cc(self, serverip, serverport, clientname,
-                                        packetsize, samp_rate, center_freq)
+                                        packetsize, samp_rate, center_freq,
+                                        net_id)
             # TODO: dirty hack!!!
 #            self.tcp_source = grc_blks2.tcp_source(itemsize=gr.sizeof_gr_complex,
 #                                                   addr=self.serverip,

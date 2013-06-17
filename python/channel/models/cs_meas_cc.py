@@ -6,7 +6,7 @@ class cs_meas_cc(gr.hier_block2):
     """ A GNU Radio block that uses a channel sounder measurement for modelling
     a channel.
     """
-    def __init__(self, sample_rate, filename):
+    def __init__(self, tx_id, rx_id, sample_rate, filename):
         """
         Parameters:
 
@@ -34,7 +34,7 @@ class cs_meas_cc(gr.hier_block2):
         fp = open(filename, 'r')
 
         model = pickle.load(fp)
-    
+
         self.taps_delays = []
         # check for non-empty list elements to find multipath components with a
         # certain delay
@@ -50,7 +50,7 @@ class cs_meas_cc(gr.hier_block2):
 
         # loop through all delays
         for idx, delay in enumerate(self.taps_delays):
-            adder = gr.add_cc() 
+            adder = gr.add_cc()
             # loop through all cisoids of a delay
             for iidx, (freq, ampl) in enumerate(model[delay]):
                 src = gr.sig_source_c(sample_rate, gr.GR_COS_WAVE, freq, ampl)
