@@ -1,9 +1,9 @@
 import numpy
 from gnuradio import gr
-from grc_gnuradio import blks2 as grc_blks2
+#from grc_gnuradio import blks2 as grc_blks2
 # import grextras for python blocks
 import gnuradio.extras
-from winelo.client.tcp_blocks import tcp_sink
+#from winelo.client.tcp_blocks import tcp_sink
 
 
 class gr2tw_cc(gr.block):
@@ -34,7 +34,8 @@ class gr2tw_cc(gr.block):
             #print "DEBUG: gr2tw - len in: %s " % len(input_items[0])
         elif len(input_items[0]) > 0:
             #print "DEBUG GR2TW part - port:", self.port
-            #print "DEBUG: gr2tw - NO packet sent - len input_items:", len(input_items[0])
+            #print "DEBUG: gr2tw - NO packet sent - len input_items:", \
+                #len(input_items[0])
             n_processed = len(input_items[0])
             #output_items[0] = packet_size * [0]
             #return len(input_items[0])
@@ -45,7 +46,7 @@ class gr2tw_cc(gr.block):
         if n_processed > len(output_items[0]):
             n_processed = len(output_items[0])
 
-        output_items[0][0:n_processed] = input_items[0][0:n_processed]  # [0:packet_size]
+        output_items[0][0:n_processed] = input_items[0][0:n_processed]
         return n_processed
 
 

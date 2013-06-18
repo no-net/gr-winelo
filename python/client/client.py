@@ -8,7 +8,7 @@ very simple header
 from twisted.internet.protocol import Protocol, ClientFactory
 from twisted.internet import reactor
 
-import struct
+#import struct
 import threading
 import numpy
 
@@ -25,8 +25,8 @@ import numpy
 
 class SendStuff(Protocol):
     """
-    Basic twisted-protocol-implementation. E.g. what to do when data is received
-    on a network socket.
+    Basic twisted-protocol-implementation. E.g. what to do when data is
+    received on a network socket.
     """
     def __init__(self, factory, flowgraph, info):
         self.info = info
@@ -47,12 +47,21 @@ class SendStuff(Protocol):
         print '[INFO] WiNeLo - Connection to the server established'
         #self.transport.write('nameEOH' + self.info['name'] + 'EOP')
         #self.transport.write('typeEOH' + self.info['type'] + 'EOP')
-        #self.transport.write('packet_sizeEOH' + str(self.info['packet_size']) + 'EOP')
-        reactor.callFromThread(self.transport.write, ('nameEOH' + self.info['name'] + 'EOP'))
-        reactor.callFromThread(self.transport.write, ('centerfreqEOH' + str(self.info['centerfreq']) + 'EOP'))
-        reactor.callFromThread(self.transport.write, ('samprateEOH' + str(self.info['samprate']) + 'EOP'))
-        reactor.callFromThread(self.transport.write, ('typeEOH' + self.info['type'] + 'EOP'))
-        reactor.callFromThread(self.transport.write, ('packet_sizeEOH' + str(self.info['packet_size']) + 'EOP'))
+        #self.transport.write('packet_sizeEOH' + \
+            #str(self.info['packet_size']) + 'EOP')
+        reactor.callFromThread(self.transport.write,
+                               ('nameEOH' + self.info['name'] + 'EOP'))
+        reactor.callFromThread(self.transport.write,
+                               ('centerfreqEOH' + str(self.info['centerfreq'])
+                                + 'EOP'))
+        reactor.callFromThread(self.transport.write,
+                               ('samprateEOH' + str(self.info['samprate']) +
+                                'EOP'))
+        reactor.callFromThread(self.transport.write,
+                               ('typeEOH' + self.info['type'] + 'EOP'))
+        reactor.callFromThread(self.transport.write,
+                               ('packet_sizeEOH' +
+                                str(self.info['packet_size']) + 'EOP'))
 
     def connectionLost(self, reason):
         """
@@ -101,7 +110,8 @@ class SendStuff(Protocol):
         """
         self.condition.acquire()
         self.dbg_counter += 1
-        #print "DEBUG: Client %s - Request received: %s - This is Req. no. %s" % (self.info['name'], number_of_samples, self.dbg_counter)
+        #print "DEBUG: Client %s - Request received: %s - This is Req. no. %s"\
+            #% (self.info['name'], number_of_samples, self.dbg_counter)
         self.flowgraph.set_n_requested_samples(number_of_samples)
         #print "DEBUG: Set request!"
         self.condition.notify()
@@ -184,14 +194,16 @@ class uhd_gate(object):
 
     def issue_stream_command(self, cmd):
         if self.simulation:
-            print "[WARNING] WiNeLo - Not supported by WiNeLo: issue_stream_command"
+            print "[WARNING] WiNeLo - Not supported by WiNeLo: " \
+                  "issue_stream_command"
         else:
             self.usrp.issue_stream_command(cmd)
 
     def get_usrp_info(self, chan=0):
         if self.simulation:
             print "[WARNING] WiNeLo - Not supported by WiNeLo: get_usrp_info"
-            #return {"WiNeLo block type": "source"}  # DO: output packet_size etc.
+            #return {"WiNeLo block type": "source"}
+                # DO: output packet_size etc.
         else:
             self.usrp.get_usrp_info(chan)
 
@@ -218,22 +230,30 @@ class uhd_gate(object):
     def get_samp_rate(self):
         if self.simulation:
             print "[WARNING] WiNeLo - Not supported by WiNeLo: get_samp_rate"
-            #samprate_server = "rate from server"  # DO: Get samp_rate from server
+            #samprate_server = "rate from server"
+                # DO: Get samp_rate from server
             return self.samp_rate  # TODO: Return real fg samp_rate!
         else:
             return self.usrp.get_samp_rate()
 
     def set_center_freq(self, freq, chan=0, collected_cmd=False):
         if self.simulation:
-            #print "Set freq on server: ", freq  # TODO: Set freq on server -> multiple channels!
+            #print "Set freq on server: ", freq
+                # TODO: Set freq on server -> multiple channels!
             if not self.collecting_timed_commands or collected_cmd:
                 if self.typ == 'rx':
-                    reactor.callFromThread(self.simsrc.twisted_conn.transport.write, ('centerfreqEOH' + str(freq) + 'EOP'))
+                    reactor.callFromThread(
+                        self.simsrc.twisted_conn.transport.write,
+                        ('centerfreqEOH' + str(freq) + 'EOP'))
                 else:
-                    reactor.callFromThread(self.simsnk.twisted_conn.transport.write, ('centerfreqEOH' + str(freq) + 'EOP'))
+                    reactor.callFromThread(
+                        self.simsnk.twisted_conn.transport.write,
+                        ('centerfreqEOH' + str(freq) + 'EOP'))
             else:
-                #print "DEBUG: appending command - cmd-times %s - cmds %s!" % (self.command_times, self.commands)
-                self.commands.append([self.set_center_freq, [freq, chan, True]])
+                #print "DEBUG: appending command - cmd-times %s - cmds %s!" \
+                    #% (self.command_times, self.commands)
+                self.commands.append([self.set_center_freq,
+                                      [freq, chan, True]])
                 #print "DEBUG"
                 self.command_times[-1][1] += 1
                 #print "DEBUG: cmd times:", self.command_times
@@ -309,7 +329,8 @@ class uhd_gate(object):
 
     def set_auto_dc_offset(self, enb, chan=0):
         if self.simulation:
-            print "[WARNING] WiNeLo - Not supported by WiNeLo: set_auto_dc_offset"
+            print "[WARNING] WiNeLo - Not supported by WiNeLo: " \
+                  "set_auto_dc_offset"
         else:
             self.usrp.set_auto_dc_offset(enb, chan)
 
@@ -333,20 +354,23 @@ class uhd_gate(object):
 
     def get_sensor_names(self, chan=0):
         if self.simulation:
-            print "[WARNING] WiNeLo - Not supported by WiNeLo: get_sensor_names"
+            print "[WARNING] WiNeLo - Not supported by WiNeLo: " \
+                  "get_sensor_names"
             return ()
         else:
             return self.usrp.get_sensor_names(chan)
 
     def get_mboard_sensor(self, name, chan=0):
         if self.simulation:
-            print "[WARNING] WiNeLo - Not supported by WiNeLo: get_mboard_sensor"
+            print "[WARNING] WiNeLo - Not supported by WiNeLo: " \
+                  "get_mboard_sensor"
         else:
             return self.usrp.get_mboard_sensor(name, chan)
 
     def get_mboard_sensor_names(self, chan=0):
         if self.simulation:
-            print "[WARNING] WiNeLo - Not supported by WiNeLo: get_sensor_names"
+            print "[WARNING] WiNeLo - Not supported by WiNeLo: " \
+                  "get_sensor_names"
             return ()
         else:
             return self.usrp.get_mboard_sensor_names(chan)
@@ -366,27 +390,31 @@ class uhd_gate(object):
 
     def get_time_sources(self, mboard):
         if self.simulation:
-            print "[WARNING] WiNeLo - Not supported by WiNeLo: get_time_sources"
+            print "[WARNING] WiNeLo - Not supported by WiNeLo: " \
+                  "get_time_sources"
             #return ('WiNeLo')
         else:
             return self.usrp.get_time_sources(mboard)
 
     def set_clock_source(self, source, mboard=0):
         if self.simulation:
-            print "[WARNING] WiNeLo - Not supported by WiNeLo: set_clock_source"
+            print "[WARNING] WiNeLo - Not supported by WiNeLo: " \
+                  "set_clock_source"
         else:
             self.usrp.set_clock_source(source, mboard)
 
     def get_clock_source(self, mboard):
         if self.simulation:
-            print "[WARNING] WiNeLo - Not supported by WiNeLo: get_clock_source"
+            print "[WARNING] WiNeLo - Not supported by WiNeLo: " \
+                  "get_clock_source"
             #return 'WiNeLo'
         else:
             return self.usrp.get_clock_source(mboard)
 
     def get_clock_sources(self, mboard):
         if self.simulation:
-            print "[WARNING] WiNeLo - Not supported by WiNeLo: get_clock_sources"
+            print "[WARNING] WiNeLo - Not supported by WiNeLo: " \
+                  "get_clock_sources"
             #return ('WiNeLo')
         else:
             return self.usrp.get_clock_sources(mboard)
@@ -412,7 +440,8 @@ class uhd_gate(object):
 
     def get_time_last_pps(self, mboard=0):
         if self.simulation:
-            print "[WARNING] WiNeLo - Not supported by WiNeLo: set_time_last_pps"
+            print "[WARNING] WiNeLo - Not supported by WiNeLo: " \
+                  "set_time_last_pps"
             #return 'WiNeLo-PPS'  #  DO: Return last full sec  from server!
         else:
             return self.usrp.get_time_last_pps(mboard)
@@ -426,20 +455,23 @@ class uhd_gate(object):
 
     def set_time_next_pps(self, time_spec):
         if self.simulation:
-            print "[WARNING] WiNeLo - Not supported by WiNeLo: set_time_next_pps"
+            print "[WARNING] WiNeLo - Not supported by WiNeLo: " \
+                  "set_time_next_pps"
             #return 'WiNeLo-PPS'  # DO: Set time req next full sec in server!
         else:
             self.usrp.set_time_next_pps(time_spec)
 
     def set_time_unknown_pps(self, time_spec):
         if self.simulation:
-            print "[WARNING] WiNeLo - Not supported by WiNeLo: set_time_unknown_pps"
+            print "[WARNING] WiNeLo - Not supported by WiNeLo: " \
+                  "set_time_unknown_pps"
         else:
             self.usrp.set_time_unknown_pps(time_spec)
 
     def set_command_time(self, time_spec, mboard=0):
         if self.simulation:
-            #print 'Set WiNeLo-commandtime: %s' % time_spec.get_real_secs()  # TODO: Send command-time to server!
+            #print 'Set WiNeLo-commandtime: %s' % time_spec.get_real_secs()
+                # TODO: Send command-time to server!
             self.command_times.append([time_spec.get_real_secs(), 0])
             self.collecting_timed_commands = True
         else:
@@ -447,7 +479,8 @@ class uhd_gate(object):
 
     def clear_command_time(self, mboard=0):
         if self.simulation:
-            #print 'clear WiNeLo-commandtime'  # TODO: Clear command-time on server!
+            #print 'clear WiNeLo-commandtime'
+                # TODO: Clear command-time on server!
             self.collecting_timed_commands = False
         else:
             self.usrp.clear_command_time(mboard)

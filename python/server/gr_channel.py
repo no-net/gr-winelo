@@ -1,5 +1,6 @@
-from gnuradio import gr, analog
-import time
+from gnuradio import gr  # , analog
+#import time
+
 
 class gr_channel():
     """ Models the radio channel between all transmitters and receivers.
@@ -52,7 +53,7 @@ class gr_channel():
 
         adders = []
         for i in range(len(rxs)):
-            adders.append( gr.add_cc() )
+            adders.append(gr.add_cc())
         print 'Adders:', adders
         # The two following for loops built a structure similar to this,
         # depending on the number of transmitters and receivers
@@ -77,17 +78,22 @@ class gr_channel():
             print
             print 'Making connections for %s' % rx.info['name']
             for tx_idx, tx in enumerate(txs):
-                print '==> Connecting source of %s to its channel' % tx.info['name']
-                tb.connect(tx.info['hw_model'], tx.info['channels'][rx.info['name']])
-                print '==> Connecting this channel to the adder at port %d' % tx_idx
-                tb.connect(tx.info['channels'][rx.info['name']], (adders[rx_idx], tx_idx))
+                print '==> Connecting source of %s to its channel' \
+                    % tx.info['name']
+                tb.connect(tx.info['hw_model'],
+                           tx.info['channels'][rx.info['name']])
+                print '==> Connecting this channel to the adder at port %d' \
+                    % tx_idx
+                tb.connect(tx.info['channels'][rx.info['name']],
+                           (adders[rx_idx], tx_idx))
                 print
             # check if the list txs is not empty
             if txs:
-                print 'Connecting the adder to the receiver %s' % rx.info['name']
+                print 'Connecting the adder to the receiver %s' \
+                    % rx.info['name']
                 tb.connect(adders[rx_idx], rx.info['hw_model'])
 
         print 'restarting gnuradio flowgraph'
         # We transmitting nodes to start the simulation
-        if txs:
+        if txs and rxs:
             tb.start()

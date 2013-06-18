@@ -7,13 +7,14 @@ import gnuradio.extras
 import numpy
 import time
 
+
 class compare_2streams_sink_c(gr.block):
     def __init__(self):
         gr.block.__init__(
             self,
-            name = "Print complex samples sink",
-            in_sig = [numpy.complex64, numpy.complex64],
-            out_sig = None,
+            name="Print complex samples sink",
+            in_sig=[numpy.complex64, numpy.complex64],
+            out_sig=None,
         )
         self.sample_counter = 0
         self.sample_error_counter = 0
@@ -28,7 +29,7 @@ class compare_2streams_sink_c(gr.block):
                 self.sample_error_counter += 1
             i += 1
         print 'After %f seconds and %d samples the sample-error-rate is %f' % (
-                time.clock() - self.timestart,
-                self.sample_counter,
-                self.sample_error_counter/float(self.sample_counter) )
+            time.clock() - self.timestart,
+            self.sample_counter,
+            self.sample_error_counter / float(self.sample_counter))
         return num_input_items

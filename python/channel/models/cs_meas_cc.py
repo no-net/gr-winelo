@@ -2,6 +2,7 @@ from gnuradio import gr
 from winelo import mpc_channel_cc
 import pickle
 
+
 class cs_meas_cc(gr.hier_block2):
     """ A GNU Radio block that uses a channel sounder measurement for modelling
     a channel.
@@ -27,8 +28,8 @@ class cs_meas_cc(gr.hier_block2):
         """
 
         gr.hier_block2.__init__(self, "Channel Sounder Measurement",
-            gr.io_signature(1, 1, gr.sizeof_gr_complex),
-            gr.io_signature(1, 1, gr.sizeof_gr_complex))
+                                gr.io_signature(1, 1, gr.sizeof_gr_complex),
+                                gr.io_signature(1, 1, gr.sizeof_gr_complex))
 
         self.sample_rate = sample_rate
         fp = open(filename, 'r')
@@ -40,13 +41,14 @@ class cs_meas_cc(gr.hier_block2):
         # certain delay
         for idx, mpc in enumerate(model):
             if mpc:
-               self.taps_delays.append(idx)
+                self.taps_delays.append(idx)
 
         # print 'taps_delays', self.taps_delays
         # create a tapped delay line structure, since the amplitudes of the sum
         # of cisoids already contain all the information about the power of a
         # Doppler spectrum, the power delay profile is set to 1 for all delays.
-        self.mpc_channel = mpc_channel_cc(self.taps_delays, [1]*len(self.taps_delays))
+        self.mpc_channel = mpc_channel_cc(self.taps_delays,
+                                          [1] * len(self.taps_delays))
 
         # loop through all delays
         for idx, delay in enumerate(self.taps_delays):
@@ -56,7 +58,7 @@ class cs_meas_cc(gr.hier_block2):
                 src = gr.sig_source_c(sample_rate, gr.GR_COS_WAVE, freq, ampl)
                 self.connect(src, (adder, iidx))
             # print iidx
-            self.connect(adder, (self.mpc_channel, idx+1))
+            self.connect(adder, (self.mpc_channel, idx + 1))
 
         self.connect(self,       (self.mpc_channel, 0))
         self.connect(self.mpc_channel, self)

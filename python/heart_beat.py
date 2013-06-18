@@ -26,23 +26,22 @@ from gnuradio import gr
 from gruel import pmt
 from gnuradio.digital import packet_utils
 import gnuradio.digital as gr_digital
-import gnuradio.extras #brings in gr.block
+import gnuradio.extras  # brings in gr.block
 import Queue
 import time
 
 
-
 # /////////////////////////////////////////////////////////////////////////////
-#                   Heart Beat - period blob generation with param key and value
+#               Heart Beat - period blob generation with param key and value
 # /////////////////////////////////////////////////////////////////////////////
 
 class heart_beat(gr.block):
     """
     Generates blob at specified interval (w/ sleep)
+
+    This block was taken from the gr-easymac/pre-cog package.
     """
-    def __init__(
-        self,period,key,value
-    ):
+    def __init__(self, period, key, value):
         """
         The input is a pmt message blob.
         Non-blob messages will be ignored.
@@ -53,14 +52,13 @@ class heart_beat(gr.block):
         @param value: String for value
         """
 
-
         gr.block.__init__(
             self,
-            name = "simple_mac",
-            in_sig = None,
-            out_sig = None,
-            has_msg_input = False,
-            num_msg_outputs = 1,
+            name="simple_mac",
+            in_sig=None,
+            out_sig=None,
+            has_msg_input=False,
+            num_msg_outputs=1,
         )
 
         #self.mgr = pmt.pmt_mgr()
@@ -80,8 +78,10 @@ class heart_beat(gr.block):
             #print "DEBUG: Heartbeat - new run, run no %s" % self.counter
             #blob = self.mgr.acquire(True) #block
             #pmt.pmt_blob_resize(blob, len(self.value))
-            #pmt.pmt_blob_rw_data(blob)[:] = numpy.fromstring(self.value,dtype="uint8")
-            self.post_msg(0, pmt.pmt_string_to_symbol(self.key), pmt.pmt_string_to_symbol(self.value))  # blob)
+            #pmt.pmt_blob_rw_data(blob)[:] = \
+                #numpy.fromstring(self.value,dtype="uint8")
+            self.post_msg(0, pmt.pmt_string_to_symbol(self.key),
+                          pmt.pmt_string_to_symbol(self.value))  # blob)
             #self.post_msg(0, pmt.pmt_string_to_symbol(self.key), blob)
             time.sleep(self.period)
             #self.counter += 1

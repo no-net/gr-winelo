@@ -2,14 +2,15 @@ from gnuradio import gr
 from winelo import mpc_channel_cc
 from winelo.channel import gauss_rand_proc_c
 
+
 class paths_6(gr.hier_block2):
     """ A GNU Radio block for the COST 207 Bad Urban model with 6 paths.
     """
 
     def __init__(self, tx_id, rx_id, sample_rate, fmax):
         gr.hier_block2.__init__(self, "COST207 Bad Urban 6 paths",
-            gr.io_signature(1, 1, gr.sizeof_gr_complex),
-            gr.io_signature(1, 1, gr.sizeof_gr_complex))
+                                gr.io_signature(1, 1, gr.sizeof_gr_complex),
+                                gr.io_signature(1, 1, gr.sizeof_gr_complex))
 
         self.sample_rate = sample_rate
         print sample_rate
@@ -19,21 +20,28 @@ class paths_6(gr.hier_block2):
         delays = [0, 0.4e-6, 1.0e-6, 1.6e-6, 5.0e-6, 6.6e-6]
         print 'delays', delays
         # Delays expressed in samples
-        self.taps_delays = [ int(sample_rate*delay) for delay in delays ]
+        self.taps_delays = [int(sample_rate * delay) for delay in delays]
         print 'delays in samples', self.taps_delays
         # power delay profile
         self.pdp = [0.5, 1, 0.5, 0.32, 0.63, 0.4]
         # channel options
-        self.channel_opts = {'N':2001, 'fmax': fmax}
+        self.channel_opts = {'N': 2001,
+                             'fmax': fmax}
         self.mpc_channel = mpc_channel_cc(self.taps_delays, self.pdp)
         # The different multipath components have to be uncorrelated. This is
         # the reason for choosing changing values for N
-        self.mpc1 = gauss_rand_proc_c(sample_rate, "cost207:jakes", "mea", 12, self.channel_opts)
-        self.mpc2 = gauss_rand_proc_c(sample_rate, "cost207:jakes", "mea", 14, self.channel_opts)
-        self.mpc3 = gauss_rand_proc_c(sample_rate, "cost207:gauss1", "gmea", 9, self.channel_opts)
-        self.mpc4 = gauss_rand_proc_c(sample_rate, "cost207:gauss1", "gmea", 10, self.channel_opts)
-        self.mpc5 = gauss_rand_proc_c(sample_rate, "cost207:gauss2", "gmea", 11, self.channel_opts)
-        self.mpc6 = gauss_rand_proc_c(sample_rate, "cost207:gauss2", "gmea", 8, self.channel_opts)
+        self.mpc1 = gauss_rand_proc_c(sample_rate, "cost207:jakes", "mea",
+                                      12, self.channel_opts)
+        self.mpc2 = gauss_rand_proc_c(sample_rate, "cost207:jakes", "mea",
+                                      14, self.channel_opts)
+        self.mpc3 = gauss_rand_proc_c(sample_rate, "cost207:gauss1", "gmea",
+                                      9, self.channel_opts)
+        self.mpc4 = gauss_rand_proc_c(sample_rate, "cost207:gauss1", "gmea",
+                                      10, self.channel_opts)
+        self.mpc5 = gauss_rand_proc_c(sample_rate, "cost207:gauss2", "gmea",
+                                      11, self.channel_opts)
+        self.mpc6 = gauss_rand_proc_c(sample_rate, "cost207:gauss2", "gmea",
+                                      8, self.channel_opts)
 
         self.connect(self,      (self.mpc_channel, 0))
         self.connect(self.mpc1, (self.mpc_channel, 1))

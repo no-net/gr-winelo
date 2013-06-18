@@ -1,10 +1,10 @@
 import numpy
 
-from gnuradio import gr, blocks
-from grc_gnuradio import blks2 as grc_blks2
+from gnuradio import gr  # , blocks
+#from grc_gnuradio import blks2 as grc_blks2
 # import grextras for python blocks
 import gnuradio.extras
-from winelo.client.tcp_blocks import tcp_source
+#from winelo.client.tcp_blocks import tcp_source
 
 
 class tw2gr_cc(gr.block):

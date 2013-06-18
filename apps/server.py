@@ -30,8 +30,8 @@ import threading
 
 # pylint can't find some of the twisted stuff
 #pylint: disable=E1101
-
-import struct
+#
+#import struct
 
 
 class Sync(Protocol):
@@ -43,8 +43,8 @@ class Sync(Protocol):
         Sets some initial information and provides the information of all
         connections to the client.
         """
-        # self.data contains the received data, which will later on be converted
-        # into samples
+        # self.data contains the received data, which will later on be
+        # converted into samples
         self.data = ''
         # self.samples contains the received samples
         self.samples = numpy.zeros(factory.packet_size, dtype=complex)
@@ -100,7 +100,10 @@ class Sync(Protocol):
         print 'A client just connected'
         # send the currently used packet size to the client
         #self.transport.write('packetsizeEOH%iEOP' % self.factory.packet_size)
-        self.transport.write('packetsizeEOH%iEOPdataportEOH%iEOPvirttimeoffsetEOH%fEOP' % (self.factory.packet_size, self.info['dataport'], self.factory.virttime))
+        self.transport.write(
+            'packetsizeEOH%iEOPdataportEOH%iEOPvirttimeoffsetEOH%fEOP'
+            % (self.factory.packet_size, self.info['dataport'],
+               self.factory.virttime))
         #self.transport.write('dataportEOH%iEOP' % self.info['dataport'])
         # set the connect in process flag
         # No new packets of samples due to received acks from the receivers will
@@ -122,7 +125,8 @@ class Sync(Protocol):
         # instead, so that the flowgraph has a complete set of packets available
         # from every client and can finish processing
         if self.info['type'] is 'tx' and not self.samples_passed_2_gr:
-            self.info['block'].samples_received(numpy.zeros(self.factory.packet_size))
+            self.info['block'].samples_received(numpy.zeros(
+                self.factory.packet_size))
             self.data = ''
 
         # The GNU Radio channel flowgraph runs in a separate thread.
@@ -192,7 +196,8 @@ class Sync(Protocol):
             # Call different methods, depending of the header.
             try:
                 #if header != "ack":
-                #    print "DEBUG: received header %s, payload %s" % (header, payload)
+                #    print "DEBUG: received header %s, payload %s" \
+                        #% (header, payload)
                 handleheaders[header](payload)
             except KeyError:
                 # This should never happen. Just some debug output.
@@ -248,13 +253,17 @@ class Sync(Protocol):
         """
         Sets the center frequency of this client
         """
-        #print "DEBUG: client %s got center_freq %s" % (self.info['name'], center_freq)
+        #print "DEBUG: client %s got center_freq %s" % (self.info['name'],
+                                                        #center_freq)
         self.info['centerfreq'] = float(center_freq)
         freq_shift = float(center_freq) - self.sim_centerfreq
-        #print "DEBUG: RECEIVED CENTER FREQ from node %s - shift: %s" % (self.info['name'], freq_shift)
+        #print "DEBUG: RECEIVED CENTER FREQ from node %s - shift: %s" \
+            #% (self.info['name'], freq_shift)
         #print "DEBUG: Set center freq at:", self.factory.virttime
-        if self.info['resample'] != 1.0 and self.info['hw_model'] != None:
-            #print "DEBUG: %s change center freq to %s - at: %s" % (self.info['name'] , float(center_freq), self.factory.virttime)
+        if self.info['resample'] != 1.0 and self.info['hw_model'] is not  None:
+            #print "DEBUG: %s change center freq to %s - at: %s" \
+                #% (self.info['name'] , float(center_freq),
+                    #self.factory.virttime)
             self.info['hw_model'].set_center_freq(float(freq_shift))
         else:
             print ("[WARNING] WiNeLo - Called set_center_freq, but simulation "
@@ -272,10 +281,12 @@ class Sync(Protocol):
         Sets the packet size of this client and registers the client
         """
         self.info['packet_size'] = int(int(packet_size) / self.info['resample'])
-        print "DEBUG: ---------- set packet size %s for node %s - resample rate %s" % (self.info['packet_size'], self.info['name'], self.info['resample'])
+        print "DEBUG: ---------- set packet size %s for node %s - " \
+              "resample rate %s" % (self.info['packet_size'], self.info['name'],
+                                    self.info['resample'])
         # All relevant information about this clien was received. Teardown the
-        # current GNU Radio channel flowgraph and connect this client to the new channel
-        # flowgraph.
+        # current GNU Radio channel flowgraph and connect this client to the new
+        # channel flowgraph.
         # The GNU Radio channel flowgraph runs in a separate thread.
         # reactor.callLater will give this thread time to finish before
         # connecting the new client to a new channel flowgraph.
@@ -293,7 +304,8 @@ class Sync(Protocol):
         # Append this client to the list of all clients of the same type
         self.factory.clients[self.info['type']].append(self)
         print self
-        print "Port %s will be used for data transmission to/from thislient" % self.info['dataport']
+        print "Port %s will be used for data transmission to/from thislient" \
+              % self.info['dataport']
 
         # Set HW modelling blocks
         #for client in self.factory.clients['tx'], self.factory.clients['rx']:
@@ -317,9 +329,9 @@ class Sync(Protocol):
                     pass
                 else:
                     tx.info['channels'][rx.info['name']] = \
-                            self.factory.channel_model(tx.info['net_id'],
-                                                       rx.info['net_id'],
-                                                       **self.factory.args.opts)
+                        self.factory.channel_model(tx.info['net_id'],
+                                                   rx.info['net_id'],
+                                                   **self.factory.args.opts)
                     # TODO: ADD PARAMETER HERE (TO CHANNEL MODEL -> WHICH
                     # TX/RX -> Evaluate Node no.)
 
@@ -343,34 +355,42 @@ class Sync(Protocol):
         receivers.
         """
         self.dbg_counter1 += 1
-        #print "DEBUG: Server - ACK no. %s received from %s" % (self.dbg_counter1, self.info['name'])
+        #print "DEBUG: Server - ACK no. %s received from %s" \
+            #% (self.dbg_counter1, self.info['name'])
         self.ack_received = True
         # has the ack been received from all receivers
-        all_acks_received = False not in [rx.ack_received for rx in self.factory.clients['rx']]
+        all_acks_received = False not in [rx.ack_received for
+                                          rx in self.factory.clients['rx']]
         #print "DEBUG: Server - all_acks_received: %s" % all_acks_received
         # if all acks have been received and no client is currently connecting
         # or disconnecting request new data from all transmitters
-        if all_acks_received and not (self.factory.connect_in_process or self.factory.disconnect_in_process):
+        if all_acks_received and not (self.factory.connect_in_process or
+                                      self.factory.disconnect_in_process):
             # TODO: Select biggest rx-samp_rate for virt-time calculation
             for tx in self.factory.clients['tx']:
                 self.dbg_counter += 1
                 #print "DEBUG: Server Requested Samples no:", self.dbg_counter
                 reactor.callFromThread(tx.reqData, tx.factory.packet_size)
-            resample_max = 1
+            #resample_max = 1
             for rx in self.factory.clients['rx']:
                 #if rx.info['resample'] > resample_max:
                 #    resample_max = rx.info['resample']
                 rx.ack_received = False
-            self.factory.virttime += float(self.factory.packet_size / self.factory.samp_rate) * self.factory.max_resample
-            #print "packet_size %s - virttime %s - samp_rate %s" % (self.factory.packet_size, self.factory.virttime, self.factory.samp_rate)
+            self.factory.virttime += float(self.factory.packet_size /
+                                           self.factory.samp_rate) * \
+                self.factory.max_resample
+            #print "packet_size %s - virttime %s - samp_rate %s" \
+                #% (self.factory.packet_size, self.factory.virttime,
+                    #self.factory.samp_rate)
 
     def __str__(self):
         """
         Overloading the __str__ method, so that "print client" does something
         meaningful
         """
-        return 'Client \"%s\" is of type \"%s\" and supports a maximum packet size of \"%i\" ' % (
-            self.info['name'], self.info['type'], self.info['packet_size'])
+        return 'Client \"%s\" is of type \"%s\" and supports a maximum packet '\
+               'size of \"%i\" ' % (self.info['name'], self.info['type'],
+                                    self.info['packet_size'])
 
     def reqData(self, number_of_samples):
         """
@@ -396,13 +416,12 @@ class SyncFactory(ServerFactory):
         self.serverport = args.port
         self.clients = {'tx': [], 'rx': []}
         self.channel = winelo.server.gr_channel(self.clients['tx'],
-                                                self.clients['rx']
-                                                )
+                                                self.clients['rx'])
         self.channel_model = channel_model
         self.hw_model = hw_model
         self.packet_size = self.args.packetsize
         self.virttime = 0.0
-        self.samp_rate =self.args.bandwidth
+        self.samp_rate = self.args.bandwidth
         self.max_resample = 1.0
         # Size of one element in packet --> numpy.complex
         self.packet_element_size = 8
@@ -422,8 +441,10 @@ class SyncFactory(ServerFactory):
         supported by all clients.
         """
         # 999999 is added so that min( ... ) always returns a result
-        min_tx = min([x.info['packet_size'] for x in self.clients['tx']] + [999999])
-        min_rx = min([x.info['packet_size'] for x in self.clients['rx']] + [999999])
+        min_tx = min([x.info['packet_size']
+                      for x in self.clients['tx']] + [999999])
+        min_rx = min([x.info['packet_size']
+                      for x in self.clients['rx']] + [999999])
         self.packet_size = min(min_tx, min_rx)
         for tx in self.clients['tx']:
             tx.samples = numpy.zeros(self.packet_size, dtype=complex)
@@ -444,9 +465,12 @@ def main():
         'rayleigh': winelo.channel.models.rayleigh_cc,
         'cs_meas': winelo.channel.models.cs_meas_cc,
         'cost207badurban': winelo.channel.models.cost207.bad_urban_cc.paths_6,
-        'cost207hillyterrain': winelo.channel.models.cost207.hilly_terrain_cc.paths_6,
-        'cost207typicalurban': winelo.channel.models.cost207.typical_urban_cc.paths_6,
-        'cost207typicalurban12': winelo.channel.models.cost207.typical_urban_cc.paths_12,
+        'cost207hillyterrain':
+        winelo.channel.models.cost207.hilly_terrain_cc.paths_6,
+        'cost207typicalurban':
+        winelo.channel.models.cost207.typical_urban_cc.paths_6,
+        'cost207typicalurban12':
+        winelo.channel.models.cost207.typical_urban_cc.paths_12,
         'cost207ruralarea': winelo.channel.models.cost207.rural_area_cc.paths_4}
         # TODO: ADD NETWORK CHANNEL MODEL (EXAMPLE WITH 3 NODES)
 
@@ -460,23 +484,31 @@ def main():
                     formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('--model', '-M', action='store',
                         dest='model', nargs='?',
-                        help='name of the channel model to be used. Available models are:\n' + '\n'.join(channel_models.keys()))
+                        help='name of the channel model to be used. Available '
+                        'models are:\n' + '\n'.join(channel_models.keys()))
     parser.add_argument('--opts', '-O', action='store',
-                        dest='opts', nargs='*', help='channel model parameters. Something like:\n[sample_rate 32000 fmax 100] or [k 1]')
+                        dest='opts', nargs='*', help='channel model parameters.'
+                        'Something like:\n[sample_rate 32000 fmax 100] or [k 1]'
+                        )
     parser.add_argument('--hw-model', '-H', action='store',
                         dest='hwmodel', nargs='?',
-                        help='name of the hw model to be used. Available models are:\n' + '\n'.join(hw_models.keys()))
+                        help='name of the hw model to be used. Available models'
+                        'are:\n' + '\n'.join(hw_models.keys()))
     parser.add_argument('--hw-opts', '-I', action='store',
-                        dest='hwopts', nargs='*', help='hw model parameters. Something like:\n[noise_ampl 0.0001 f_offset 2000]')
+                        dest='hwopts', nargs='*', help='hw model parameters. '
+                        'Something like:\n[noise_ampl 0.0001 f_offset 2000]')
     parser.add_argument('--port', '-P', type=int, action='store',
                         dest='port', nargs='?', default=8888,
                         help='the port on which the server is listening')
-    parser.add_argument('--packetsize', '-N', type=int, action='store', nargs='?',
-                        default=1000, help='How many samples a packet will contain')
-    parser.add_argument('--bandwidth', '-B', type=float, action='store', nargs='?',
-                        default=1000000.0, help='Simulation bandwidth')
-    parser.add_argument('--centerfreq', '-F', type=float, action='store', nargs='?',
-                        default=100000000.0, help='Center frequency of simulation band')
+    parser.add_argument('--packetsize', '-N', type=int, action='store',
+                        nargs='?', default=1000, help='How many samples a '
+                        'packet will contain')
+    parser.add_argument('--bandwidth', '-B', type=float, action='store',
+                        nargs='?', default=1000000.0, help='Simulation '
+                        'bandwidth')
+    parser.add_argument('--centerfreq', '-F', type=float, action='store',
+                        nargs='?', default=100000000.0, help='Center frequency'
+                        ' of simulation band')
 
     args = parser.parse_args()
 
@@ -492,12 +524,12 @@ def main():
             pass
     channel_model = channel_models[args.model]
     # turn the hw model parameters in a dictionary
-    if args.hwopts != None:
+    if args.hwopts is not None:
         args.hwopts = dict(zip(args.hwopts[0::2], args.hwopts[1::2]))
         for key in args.hwopts.keys():
-            # convert the parameters to float, except if the parameter is a string
-            # than float() will throw a value error and we don't have to do
-            # anything
+            # convert the parameters to float, except if the parameter is a
+            #string than float() will throw a value error and we don't have to
+            #do anything
             try:
                 args.hwopts[key] = float(args.hwopts[key])
             except ValueError:

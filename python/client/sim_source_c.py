@@ -1,18 +1,18 @@
 import numpy
-from grc_gnuradio import blks2 as grc_blks2
-from gnuradio import gr, uhd, blocks, analog
+#from grc_gnuradio import blks2 as grc_blks2
+from gnuradio import gr, uhd, blocks  # , analog
 from gruel import pmt
 # import grextras for python blocks
 import gnuradio.extras
 
 from twisted.internet import reactor
-import thread
+#import thread
 from threading import Thread
 import time
 import random
 
 from winelo.client import SendFactory, uhd_gate
-from winelo.client.tcp_blocks import tcp_source
+#from winelo.client.tcp_blocks import tcp_source
 
 
 class sim_source_cc(gr.block):
@@ -59,11 +59,13 @@ class sim_source_cc(gr.block):
                            )
         if not reactor.running:
             print '[INFO] WiNeLo - Starting the reactor'
-            #thread.start_new_thread(reactor.run, (), {'installSignalHandlers': 0})
+            #thread.start_new_thread(reactor.run, (),
+                                     #{'installSignalHandlers': 0})
             Thread(target=reactor.run, args=(False,)).start()
         else:
             time.sleep(3)
-        print '[INFO] WiNeLo - giving twisted time to setup and block everything'
+        print '[INFO] WiNeLo - giving twisted time to setup and block ' \
+              'everything'
         time.sleep(3)
 
     def work(self, input_items, output_items):
@@ -81,7 +83,8 @@ class sim_source_cc(gr.block):
                 #print "DEBUG: sim_source - got items"
                 #if len(input_items[0]) is 0:
                 #    return 0
-            if self.samples_to_produce <= len(input_items[0]) and self.samples_to_produce > 0:
+            if self.samples_to_produce <= len(input_items[0]) and \
+                    self.samples_to_produce > 0:
                 produce_n_samples = self.samples_to_produce
             else:
                 produce_n_samples = len(input_items[0])
@@ -89,14 +92,19 @@ class sim_source_cc(gr.block):
             if produce_n_samples > len(output_items[0]):
                 produce_n_samples = len(output_items[0])
 
-            #print "DEBUG: src - produce_n: %s - samples_to_produce: %s" % (produce_n_samples, self.samples_to_produce)
+            #print "DEBUG: src - produce_n: %s - samples_to_produce: %s" \
+                #% (produce_n_samples, self.samples_to_produce)
 
             #elif self.samples_to_produce < len(input_items[0]):
-            #    print "DEBUG: samples to produce:", self.samples_to_produce, " - len input:", len(input_items[0]), " - len output:", len(output_items[0])
+            #    print "DEBUG: samples to produce:", self.samples_to_produce,"\
+                #" - len input:", len(input_items[0]), " - len output:", \
+                #len(output_items[0])
             #    if self.samples_to_produce > 0:
-            #        output_items[0][:] = input_items[0][0:self.samples_to_produce]
+            #        output_items[0][:] = \
+                #input_items[0][0:self.samples_to_produce]
             #else:
-            output_items[0][0:produce_n_samples] = input_items[0][0:produce_n_samples]
+            output_items[0][0:produce_n_samples] = \
+                input_items[0][0:produce_n_samples]
 
             ### DEBUG:
             #no_zeros_last = self.no_zero_counter
@@ -110,24 +118,28 @@ class sim_source_cc(gr.block):
             #    n_processed = len(input_items[0])
             #    output_items[0] = input_items[0]
                 #print "Source processed:", n_processed
-                #print "DEBUG: sim_source - elif - items processed:", n_processed
+                #print "DEBUG: sim_source - elif - items processed:",
+                    #n_processed
                 #time.sleep(1.0 / self.samp_rate * n_processed)
             #else:
             #    n_processed = len(output_items[0])
             #    output_items[0] = input_items[0][0:n_processed]
                 #print "Source processed:", n_processed
-                #print "DEBUG: sim_source - else - items processed:", n_processed
+                #print "DEBUG: sim_source - else - items processed:", \
+                    #n_processed
                 #time.sleep(1.0 / self.samp_rate * n_processed)
             self.timeout_start = None
             self.virtual_counter += produce_n_samples
             self.virtual_time += produce_n_samples / float(self.samp_rate)
-            # TODO TODO TODO TODO: Produce max. diff samples, then call commands before
+            # TODO TODO: Produce max. diff samples, then call commands before
             # running again!
             # CHECK TIMED COMMANDS
-            if len(self.hier_blk.commands) > 0 and len(self.hier_blk.command_times) > 0:
+            if len(self.hier_blk.commands) > 0 and \
+                    len(self.hier_blk.command_times) > 0:
                 #print "DEBUG: evaluating cmd times"
                 cmd_time, n_cmds = self.hier_blk.command_times[0]
-                #print "DEBUG: time %s - n_cmds %s - virt_time %s" % (time, n_cmds, self.virtual_time)
+                #print "DEBUG: time %s - n_cmds %s - virt_time %s" \
+                    #% (time, n_cmds, self.virtual_time)
                 while self.virtual_time > (cmd_time + 0.0065):
                     #print "DEBUG: calling run_timed_cmds"
                     if self.drop_one_in_n_cmds > 0:
@@ -137,13 +149,16 @@ class sim_source_cc(gr.block):
                     if rand_no == 1:
                         self.hier_blk.command_times.pop(0)
                         self.hier_blk.commands.pop(0)
-                        print "[INFO] WiNeLo - Dropped command due to HW model!"
+                        print "[INFO] WiNeLo - Dropped cmd due to HW model!"
                     else:
-                        #print "DEBUG: RxRxRx - Tuning cmd sent at: %s - CMD time: %s" % (self.virtual_time, cmd_time)
-                        #print "DEBUG: Set RX-freq to %s at %s" % (self.hier_blk.commands[0][1], cmd_time)
+                        #print "DEBUG: RxRxRx - Tuning cmd sent at: %s - " \
+                               #"CMD time: %s" % (self.virtual_time, cmd_time)
+                        #print "DEBUG: Set RX-freq to %s at %s" \
+                            #% (self.hier_blk.commands[0][1], cmd_time)
                         #print "DEBUG: virtual counter:", self.virtual_counter
                         self.hier_blk.command_times.pop(0)
-                        #print "DEBUG-----------------------hier_blk_cmd_times", self.hier_blk.command_times
+                        #print "DEBUG---------------------hier_blk_cmd_times",\
+                            #self.hier_blk.command_times
                         self.run_timed_cmds(n_cmds)
                     if len(self.hier_blk.command_times) > 0:
                         #print "DEBUG: NEW TIME, CMDS"
@@ -155,7 +170,8 @@ class sim_source_cc(gr.block):
             self.samples_to_produce -= produce_n_samples
             #print "DEBUG: NO ACK sent"
             #print "DEBUG: NO ACK - produced:", len(output_items[0])
-            #print "DEBUG: NO ACK - samples to produce:", self.samples_to_produce
+            #print "DEBUG: NO ACK - samples to produce:", \
+                   #self.samples_to_produce
             #print "DEBUG: NO ACK - len input", len(input_items[0])
             if self.samples_to_produce == 0:
                 self.dbg_counter += 1
@@ -181,7 +197,8 @@ class sim_source_cc(gr.block):
 
     def set_dataport(self, port):
         self.dataport = port
-        print '[INFO] WiNeLo - Port %s will be used for data transmission' % self.dataport
+        print '[INFO] WiNeLo - Port %s will be used for data transmission' \
+              % self.dataport
 
     def set_packetsize(self, packet_size):
         self.packet_size = packet_size
@@ -190,7 +207,8 @@ class sim_source_cc(gr.block):
 
     def update_virttime(self, time_offset):
         if self.absolute_time:
-            print "[INFO] WiNeLo - Setting source time to server time:", time_offset
+            print "[INFO] WiNeLo - Setting source time to server time:", \
+                  time_offset
             self.virtual_time += time_offset
             self.virt_offset = time_offset
 
@@ -200,7 +218,8 @@ class sim_source_cc(gr.block):
         return self.dataport
 
     def get_time_now(self):
-        # Calculate time according tot the sample rate & the number of processed items
+        # Calculate time according tot the sample rate & the number of
+        # processed items
         #time = 1.0 / self.samp_rate * self.virtual_counter
         time = self.virtual_time
         full_secs = int(time)
@@ -212,7 +231,8 @@ class sim_source_cc(gr.block):
         #Produce tags
         offset = self.nitems_written(0) + 0
         key_time = pmt.pmt_string_to_symbol("rx_time")
-        #value_time = pmt.from_python(1.0 / self.samp_rate * self.virtual_counter)
+        #value_time = pmt.from_python(1.0 /
+                                      #self.samp_rate * self.virtual_counter)
         value_time = pmt.from_python(self.get_time_now())
 
         key_rate = pmt.pmt_string_to_symbol("rx_rate")
@@ -241,7 +261,8 @@ class sim_source_c(gr.hier_block2, uhd_gate):
         self.samp_rate = samp_rate
         self.typ = 'rx'
         if not self.simulation:
-            self.usrp = uhd.usrp_source(device_addr, stream_args)  # TODO: Parameters
+            self.usrp = uhd.usrp_source(device_addr, stream_args)
+                # TODO: Parameters
             self.connect(self.usrp, self)
         else:
             self.simsrc = sim_source_cc(self, serverip, serverport, clientname,

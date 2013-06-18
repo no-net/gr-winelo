@@ -1,19 +1,19 @@
 import numpy
-from grc_gnuradio import blks2 as grc_blks2
-from gnuradio import gr, uhd, blocks
+#from grc_gnuradio import blks2 as grc_blks2
+from gnuradio import gr, uhd  # , blocks
 from gruel import pmt
 # import grextras for python blocks
 import gnuradio.extras
 
 from twisted.internet import reactor
-import thread
+#import thread
 from threading import Thread
 import time
 import random
-import precog
+#import precog
 
 from winelo.client import SendFactory, uhd_gate
-from winelo.client.tcp_blocks import tcp_sink
+#from winelo.client.tcp_blocks import tcp_sink
 from winelo import heart_beat
 
 
@@ -82,11 +82,13 @@ class sim_sink_cc(gr.basic_block):
         # THE REACTOR MUST NOT BE STARTED MORE THAN ONCE PER FLOWGRAPH
         if not reactor.running:
             print '[INFO] WiNeLo - Starting the reactor'
-            #thread.start_new_thread(reactor.run, (), {'installSignalHandlers': 0})
+            #thread.start_new_thread(reactor.run, (),
+                                     #{'installSignalHandlers': 0})
             Thread(target=reactor.run, args=(False,)).start()
         else:
             time.sleep(1)
-        print '[INFO] WiNeLo - giving twisted time to setup and block everything'
+        print '[INFO] WiNeLo - giving twisted time to setup and block ' \
+              'everything'
         time.sleep(1)
 
    # def forecast(self, noutput_items, ninput_items_required):
@@ -117,33 +119,37 @@ class sim_sink_cc(gr.basic_block):
         #eval_stt = self.samples_to_tx
         #eval_pro_zer = self.produce_zeros
         #eval_pro_nex = self.produce_zeros_next
-        if (self.samples_to_tx <= 0) and not (self.produce_zeros or self.produce_zeros_next):
+        if(self.samples_to_tx <= 0) and not \
+                (self.produce_zeros or self.produce_zeros_next):
             self.tags = {'tx_time': [],
-                        'tx_sob': [],
-                        'tx_eob': []
-                        }
+                         'tx_sob': [],
+                         'tx_eob': []
+                         }
             self.evaluate_timestamps(self.nitems_read(0), len(input_items[0]))
-            evaluated_timestamp = True
+            #evaluated_timestamp = True
             #print "DEBUG: Evaluating timestamps..."
             #print "---- samples_to_tx:", self.samples_to_tx
             #print "zeros_to_produce:", self.zeros_to_produce
             #print "produce_zeros:", self.produce_zeros
             #print "produce_zeros_next:", self.produce_zeros_next
         #else:
-            #print '++++++++++ Not evaluating timestamps:', self.samples_to_tx, self.produce_zeros, self.produce_zeros_next
+            #print '++++++++++ Not evaluating timestamps:', self.samples_to_tx,
+                #self.produce_zeros, self.produce_zeros_next
 
         # Get no. zeros to produce
-        dhg_late = False
+        #dhg_late = False
         if len(self.tags['tx_time']) >= 1:
             self.next_tx_time = self.tags['tx_time'].pop(0)
             #print "TX time:", self.next_tx_time, " - last eob:", self.last_eob
             #print "DEBUG: Zeros_to_produce before:", self.zeros_to_produce
-            #print "[INFO] WiNeLo - Zeros to produce:", (self.next_tx_time - self.last_eob)
+            #print "[INFO] WiNeLo - Zeros to produce:",
+                #(self.next_tx_time - self.last_eob)
             #print "DEBUG: Zeros to  produce", self.zeros_to_produce
             self.zeros_to_produce += int(self.next_tx_time - self.last_eob)
             #self.got_sob = True
             if self.zeros_to_produce < 0:
-                print '[ERROR] WiNeLo - Got SOB-tag too late. produced too much Zeros! Try increasing the realtime multiplicator!'
+                print '[ERROR] WiNeLo - Got SOB-tag too late. produced too ' \
+                      'much Zeros! Try increasing the realtime multiplicator!'
                 #print 'DEBUG: produce_zeros:', self.produce_zeros
                 #print 'DEBUG: produce_zeros_nxt:', self.produce_zeros_next
                 #self.virtual_counter = self.next_tx_time
@@ -168,10 +174,13 @@ class sim_sink_cc(gr.basic_block):
         if len(self.tags['tx_eob']) >= 1:
             #print "DEBUG: self.tags tx_eob", self.tags['tx_eob']
             #print "Start padding of ", self.zeros_to_produce, " zeros"
-            eob_offset = self.tags['tx_eob'].pop(0)  # TODO: Check if offset-1 or offset!
-            #print "DEBUG: self.samples_to_tx = ", eob_offset, " - ", self.last_sob_offset
+            eob_offset = self.tags['tx_eob'].pop(0)
+                # TODO: Check if offset-1 or offset!
+            #print "DEBUG: self.samples_to_tx = ", eob_offset, " - ",
+                #self.last_sob_offset
             #print "DEBUG: samples_to_tx BEFORE eob:", self.samples_to_tx
-            #print "DEBUG: eob_offset: %s, last sob_offset: %s" % (eob_offset, self.last_sob_offset)
+            #print "DEBUG: eob_offset: %s, last sob_offset: %s" \
+                #% (eob_offset, self.last_sob_offset)
             self.samples_to_tx += eob_offset - self.last_sob_offset + 1
             #print "DEBUG: samples_to_tx AFTER eob:", self.samples_to_tx
             ###input_items[0] = input_items[0][0:self.samples_to_tx]
@@ -186,8 +195,10 @@ class sim_sink_cc(gr.basic_block):
             #self.zeros_to_produce = -1
             # TODO TODO TODO: virtual_counter statt next_tx_time! (wichtig bei
             # GPS time z.b.
-            self.last_eob = self.next_tx_time + self.samples_to_tx # TODO: check +-1!
-            #print "DEBUG: calculated last_eob:", self.virtual_counter, " + ", self.zeros_to_produce, " + ", samples_to_tx
+            self.last_eob = self.next_tx_time + self.samples_to_tx
+                # TODO: check +-1!
+            #print "DEBUG: calculated last_eob:", self.virtual_counter, " + ",\
+                #self.zeros_to_produce, " + ", samples_to_tx
             self.got_sob_eob = True
         #elif len(self.tags['tx_eob']) > 1:
             #print "ERROR: Too much tx_eob-TAGs in work-call!"
@@ -227,7 +238,8 @@ class sim_sink_cc(gr.basic_block):
                 #print "DEBUG: Producing Zeros..."
                 #print "DEBUG: Requested Samples", n_requested_samples
                 #Don't go over 0!
-                if (self.zeros_to_produce > 0) and (self.zeros_to_produce - n_requested_samples) < 0:
+                if (self.zeros_to_produce > 0) and \
+                        (self.zeros_to_produce - n_requested_samples) < 0:
                     samples_to_produce = self.zeros_to_produce
                 else:
                     samples_to_produce = n_requested_samples
@@ -235,20 +247,23 @@ class sim_sink_cc(gr.basic_block):
                 if samples_to_produce > len(output_items[0]):
                     samples_to_produce = len(output_items[0])
 
-                output_items[0][0:samples_to_produce] = samples_to_produce * [0]
+                output_items[0][0:samples_to_produce] = \
+                    samples_to_produce * [0]
                 n_produced = samples_to_produce
 
                 self.zeros_to_produce -= n_produced
                 #print "DEBUG: produced zeros:", len(output_items[0])
                 # TODO TODO: Multiplicator, realtime-mode!
-                time.sleep(self.realtime_multiplicator / self.samp_rate * n_produced)
+                time.sleep(self.realtime_multiplicator /
+                           self.samp_rate * n_produced)
                 self.consume(0, 0)
                 #n_processed = 0
                 #self.n_requested_samples -= len(output_items[0])
                 #self.virtual_counter += len(output_items[0])
                 break
 
-            #elif (n_requested_samples < len(input_items[0])) and (n_requested_samples > 0):
+            #elif (n_requested_samples < len(input_items[0])) and \
+                   # (n_requested_samples > 0):
                 #print "DEBUG: elif1, req samp:", n_requested_samples
                 #output_items[0] = input_items[0][0:n_requested_samples]
                 #self.consume(0, len(output_items[0]))
@@ -258,16 +273,21 @@ class sim_sink_cc(gr.basic_block):
             # TODO TODO TODO TODO TODO: Fass diese zwei schleifen zusammen, es
             # duerfen max samples_to_tx und auch max n_req ausgegeben werden!
 
-            elif len(input_items[0]) > 0 and (n_requested_samples > 0) and not self.produce_zeros:
+            elif len(input_items[0]) > 0 and (n_requested_samples > 0) and not\
+                    self.produce_zeros:
                 # Move samples from the input to the output
                 #print "DEBUG: else - req samples:", n_requested_samples
                 #print "DEBUG: elif2", self.produce_zeros
-                #print "DEBUG: elif2i ------ eval_ts %s - prod zero %s - prod_zeros_next %s - samp_to_tx %s" % (evaluated_timestamp, self.produce_zeros, self.produce_zeros_next, self.samples_to_tx)
+                #print "DEBUG: elif2i ------ eval_ts %s - prod zero %s - \
+                    #prod_zeros_next %s - samp_to_tx %s" \
+                    #% (evaluated_timestamp, self.produce_zeros,
+                    #self.produce_zeros_next, self.samples_to_tx)
                 #print "++++++samples_to_tx", eval_stt
                 #print "++++++produce_zeros", eval_pro_zer
                 #print "++++++produce_zeros_next", eval_pro_nex
                 dbg = "elif2"
-                if self.samples_to_tx <= n_requested_samples and self.samples_to_tx > 0:
+                if self.samples_to_tx <= n_requested_samples and \
+                        self.samples_to_tx > 0:
                     samples_to_produce = self.samples_to_tx
                 else:
                     samples_to_produce = n_requested_samples
@@ -278,14 +298,17 @@ class sim_sink_cc(gr.basic_block):
                 #print "Type input", type(input_items[0])
                 #print "DEBUG: Len output_items", len(output_items[0])
                 if samples_to_produce < len(input_items[0]):
-                    #print "DEBUG: samples to produce:", samples_to_produce, " - len input:", len(input_items[0])
-                    output_items[0][0:samples_to_produce] = input_items[0][0:samples_to_produce]
+                    #print "DEBUG: samples to produce:", samples_to_produce,
+                        #" - len input:", len(input_items[0])
+                    output_items[0][0:samples_to_produce] = \
+                        input_items[0][0:samples_to_produce]
                     n_produced = samples_to_produce
                 else:
                     output_items[0][0:len(input_items[0])] = input_items[0][:]
                     n_produced = len(input_items[0])
                     #print "---DEBUG: len out", len(output_items[0])
-                time.sleep(self.realtime_multiplicator / self.samp_rate * n_produced / 2)
+                time.sleep(self.realtime_multiplicator /
+                           self.samp_rate * n_produced / 2)
                 self.consume(0, n_produced)
                 #if self.samples_to_tx >= 0:
                 self.samples_to_tx -= n_produced
@@ -306,14 +329,16 @@ class sim_sink_cc(gr.basic_block):
                 break
             #elif not self.got_sob_eob:
             #elif not self.got_sob:
-            elif self.no_input_counter == self.max_no_input and not self.waiting_for_eob:
+            elif self.no_input_counter == self.max_no_input and not \
+                    self.waiting_for_eob:
             ###elif self.no_input_counter < self.max_no_input:
                 # Get the simulation running if no input_items are available
                 # and we didn't get an eob/sob tag
                 #print "Inserting zeros"
                 dbg = "elif3"
                 #print "elif3"
-                #print "len in", len(input_items[0]), "prod zeros",  self.produce_zeros_next, "req samp", n_requested_samples
+                #print "len in", len(input_items[0]), "prod zeros",
+                    #self.produce_zeros_next, "req samp", n_requested_samples
                 # Needed to start the simulation
                 #self.no_input_counter += 1
                 #if self.no_input_counter == self.max_no_input:
@@ -330,18 +355,21 @@ class sim_sink_cc(gr.basic_block):
                 if samples_to_produce > len(output_items[0]):
                     samples_to_produce = len(output_items[0])
 
-                output_items[0][0:samples_to_produce] = samples_to_produce * [0]
+                output_items[0][0:samples_to_produce] = \
+                    samples_to_produce * [0]
                 n_produced = samples_to_produce
                 ###n_produced = 0
                 self.zeros_to_produce -= n_produced
-                #time.sleep(self.realtime_multiplicator / self.samp_rate * n_produced)
+                #time.sleep(self.realtime_multiplicator /
+                    #self.samp_rate * n_produced)
                 self.no_input_counter = 0
                 ###self.no_input_counter += 1
                 break
             else:
                 self.no_input_counter += 1
                 if self.no_input_counter == self.max_no_input:
-                    time.sleep(self.realtime_multiplicator / self.samp_rate * self.packet_size)
+                    time.sleep(self.realtime_multiplicator /
+                               self.samp_rate * self.packet_size)
                 self.consume(0, 0)
                 return 0
        #     else:
@@ -356,15 +384,17 @@ class sim_sink_cc(gr.basic_block):
         self.virtual_counter += n_produced
         ##virtual_time_before = self.virtual_time
         self.virtual_time += n_produced / float(self.samp_rate)
-        # TODO TODO TODO TODO: Produce max. diff samples, then call commands before
+        # TODO TODO TODO: Produce max. diff samples, then call commands before
         ##if int(virtual_time_before / 0.5) < int(self.virtual_time / 0.5):
-            ##print "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+            ##print "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
         # running again!
         # CHECK TIMED COMMANDS
-        if len(self.hier_blk.commands) > 0 and len(self.hier_blk.command_times) > 0:
+        if len(self.hier_blk.commands) > 0 and \
+                len(self.hier_blk.command_times) > 0:
             #print "DEBUG: evaluating cmd times"
             cmd_time, n_cmds = self.hier_blk.command_times[0]
-            #print "DEBUG: time %s - n_cmds %s - virt_time %s" % (time, n_cmds, self.virtual_time)
+            #print "DEBUG: time %s - n_cmds %s - virt_time %s" \
+                #% (time, n_cmds, self.virtual_time)
             while self.virtual_time > (cmd_time + 0.0065):
                 #print "DEBUG: calling run_timed_cmds"
                 if self.drop_one_in_n_cmds > 0:
@@ -376,11 +406,16 @@ class sim_sink_cc(gr.basic_block):
                     self.hier_blk.commands.pop(0)
                     print "[INFO] WiNeLo - Dropped command due to HW model!"
                 else:
-                    #print "DEBUG: TxTxTx - Tuning cmd sent at: %s - CMD time: %s - post: %s - pre: %s" % (self.virtual_time, cmd_time, cmd_time -0.003, cmd_time + 0.005)
-                    #print "DEBUG: Set TX-freq to %s at %s" % (self.hier_blk.commands[0][1], cmd_time)
+                    #print "DEBUG: TxTxTx - Tuning cmd sent at: %s - CMD " \
+                        #"time: %s - post: %s - pre: %s" \
+                        #% (self.virtual_time, cmd_time, cmd_time -0.003,
+                            #cmd_time + 0.005)
+                    #print "DEBUG: Set TX-freq to %s at %s" \
+                        #% (self.hier_blk.commands[0][1], cmd_time)
                     #print "DEBUG: virtual counter:", self.virtual_counter
                     self.hier_blk.command_times.pop(0)
-                    #print "DEBUG-----------------------hier_blk_cmd_times", self.hier_blk.command_times
+                    #print "DEBUG-----------------------hier_blk_cmd_times", \
+                        #self.hier_blk.command_times
                     self.run_timed_cmds(n_cmds)
                 if len(self.hier_blk.command_times) > 0:
                     #print "DEBUG: NEW TIME, CMDS"
@@ -390,14 +425,15 @@ class sim_sink_cc(gr.basic_block):
         #print "DEBUG: req samp before:", self.n_requested_samples
         before = "before"
         if self.n_requested_samples >= 0:
-            before_gt = True
+            #before_gt = True
             before = self.n_requested_samples
-        else:
-            before_gt = False
+        #else:
+            #before_gt = False
         self.n_requested_samples -= n_produced
         if dbg_late:
             print "DEBUG: Underrun of req_samples:"
-            print "-------- before: %s --- after: %s" % (before, self.n_requested_samples)
+            print "-------- before: %s --- after: %s" \
+                % (before, self.n_requested_samples)
             print "-------- DBG: %s" % dbg
             print "produce_z_next:", self.produce_zeros_next
             print "n_req_samp", n_requested_samples
@@ -434,7 +470,8 @@ class sim_sink_cc(gr.basic_block):
 
     def set_dataport(self, port):
         self.dataport = port
-        print '[INFO] WiNeLo - Port %s will be used for data transmission' % self.dataport
+        print '[INFO] WiNeLo - Port %s will be used for data transmission' \
+            % self.dataport
 
     def set_packetsize(self, packet_size):
         #print "DEBUG: Set packetsize"
@@ -442,7 +479,8 @@ class sim_sink_cc(gr.basic_block):
 
     def update_virttime(self, time_offset):
         if self.absolute_time:
-            print "[INFO] WiNeLo - Setting sink time to server time:", time_offset
+            print "[INFO] WiNeLo - Setting sink time to server time:", \
+                time_offset
             self.last_eob = int(time_offset * self.samp_rate)
             self.virtual_time += time_offset
             self.virt_offset = time_offset
@@ -459,40 +497,28 @@ class sim_sink_cc(gr.basic_block):
         self.virtual_counter += processed_items
 
     def evaluate_timestamps(self, nread, ninput_items):
-        tags = self.get_tags_in_range(0, nread, nread + ninput_items, pmt.pmt_string_to_symbol("tx_time"))
+        tags = self.get_tags_in_range(0, nread, nread + ninput_items,
+                                      pmt.pmt_string_to_symbol("tx_time"))
         if tags:
-            #for i in range(0, len(tags)):
-                #full_secs = pmt.pmt_to_uint64(pmt.pmt_tuple_ref(tags[i].value, 0))
-                #frac_secs = pmt.pmt_to_double(pmt.pmt_tuple_ref(tags[i].value, 1))
-                #tx_item = full_secs * self.samp_rate + int(frac_secs / (1.0 / self.samp_rate))
-                #if tx_item > self.last_tx_item:
-                #    if (len(self.tx_items) is 0) or (tx_item > self.tx_items[len(self.tx_items) - 1]):
-                #self.tags['tx_time'].append(tx_item)
             full_secs = pmt.pmt_to_uint64(pmt.pmt_tuple_ref(tags[0].value, 0))
             frac_secs = pmt.pmt_to_double(pmt.pmt_tuple_ref(tags[0].value, 1))
-            tx_item = full_secs * self.samp_rate + int(frac_secs / (1.0 / self.samp_rate))
-            #if tx_item > self.last_tx_item:
-            #    if (len(self.tx_items) is 0) or (tx_item > self.tx_items[len(self.tx_items) - 1]):
+            tx_item = full_secs * self.samp_rate + \
+                int(frac_secs / (1.0 / self.samp_rate))
             self.tags['tx_time'].append(tx_item)
 
-        sob_tags = self.get_tags_in_range(0, nread, nread + ninput_items, pmt.pmt_string_to_symbol("tx_sob"))
+        sob_tags = self.get_tags_in_range(0, nread, nread + ninput_items,
+                                          pmt.pmt_string_to_symbol("tx_sob"))
         if sob_tags:
-            #for sob_tag in sob_tags:
-                #if (sob_tag.offset) > self.last_sob_item:
-                #    if (len(self.sob_items) is 0) or ((sob_tag.offset) > self.sob_items[len(self.sob_items) - 1]):
-                #self.tags['tx_sob'].append(sob_tag.offset)
             self.tags['tx_sob'].append(sob_tags[0].offset)
 
-        eob_tags = self.get_tags_in_range(0, nread, nread + ninput_items, pmt.pmt_string_to_symbol("tx_eob"))
+        eob_tags = self.get_tags_in_range(0, nread, nread + ninput_items,
+                                          pmt.pmt_string_to_symbol("tx_eob"))
         if eob_tags:
-            #for i in range(0, len(eob_tags)):
-                #if (eob_tags[i].offset) > self.last_eob_item:
-                #    if (len(self.eob_items) is 0) or ((eob_tags[i].offset) > self.eob_items[len(self.eob_items) - 1]):
-                #self.tags['tx_eob'].append(eob_tags[i].offset)
             self.tags['tx_eob'].append(eob_tags[0].offset)
 
     def get_time_now(self):
-        # Calculate time according tot the sample rate & the number of processed items
+        # Calculate time according tot the sample rate & the number of
+        # processed items
         time = 1.0 / self.samp_rate * self.virtual_counter
         full_secs = int(time)
         frac_secs = time - int(time)
@@ -517,7 +543,8 @@ class sim_sink_c(gr.hier_block2, uhd_gate):
         self.samp_rate = samp_rate
         self.typ = 'tx'
         if not self.simulation:
-            self.usrp = uhd.usrp_sink(device_addr, stream_args)  # TODO: Parameters
+            self.usrp = uhd.usrp_sink(device_addr, stream_args)
+                # TODO: Parameters
             self.connect(self, self.usrp)
         else:
             self.simsnk = sim_sink_cc(self, serverip, serverport, clientname,
