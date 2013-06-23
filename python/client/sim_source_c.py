@@ -18,7 +18,7 @@ from winelo.client import SendFactory, uhd_gate
 class sim_source_cc(gr.block):
 
     def __init__(self, hier_blk, serverip, serverport, clientname,
-                 packetsize, samp_rate, center_freq, net_id):
+                 packetsize, samp_rate, center_freq, net_id=0):
         gr.block.__init__(
             self,
             name="WiNeLo source",

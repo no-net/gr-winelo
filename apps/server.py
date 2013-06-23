@@ -170,7 +170,7 @@ class Sync(Protocol):
         handleheaders = {'name': self.setName,
                          'centerfreq': self.setCenterFreq,
                          'samprate': self.setSampRate,
-                         'network_id': self.setNetID,
+                         'net_id': self.setNetID,
                          'type': self.setType,
                          'packet_size': self.setPacketSize,
                          'ack': self.handleAck,
@@ -462,6 +462,7 @@ def main():
 
     channel_models = {
         'const': winelo.channel.models.const_cc,
+        'const_multi': winelo.channel.models.const_multi_cc,
         'rayleigh': winelo.channel.models.rayleigh_cc,
         'cs_meas': winelo.channel.models.cs_meas_cc,
         'cost207badurban': winelo.channel.models.cost207.bad_urban_cc.paths_6,

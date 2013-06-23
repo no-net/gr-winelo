@@ -60,6 +60,8 @@ class SendStuff(Protocol):
         reactor.callFromThread(self.transport.write,
                                ('typeEOH' + self.info['type'] + 'EOP'))
         reactor.callFromThread(self.transport.write,
+                               ('net_idEOH' + str(self.info['net_id']) + 'EOP'))
+        reactor.callFromThread(self.transport.write,
                                ('packet_sizeEOH' +
                                 str(self.info['packet_size']) + 'EOP'))
 

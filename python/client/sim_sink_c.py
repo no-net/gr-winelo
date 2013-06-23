@@ -20,7 +20,7 @@ from winelo import heart_beat
 class sim_sink_cc(gr.basic_block):
 
     def __init__(self, hier_blk, serverip, serverport, clientname,
-                 packetsize, samp_rate, center_freq, net_id):
+                 packetsize, samp_rate, center_freq, net_id=0):
         gr.basic_block.__init__(
             self,
             name="WiNeLo sink",
