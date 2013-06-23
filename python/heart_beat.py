@@ -19,15 +19,15 @@
 # Boston, MA 02110-1301, USA.
 #
 
-import numpy
+#import numpy
 #from numpy import np
-from math import pi
+#from math import pi
 from gnuradio import gr
 from gruel import pmt
-from gnuradio.digital import packet_utils
-import gnuradio.digital as gr_digital
+#from gnuradio.digital import packet_utils
+#import gnuradio.digital as gr_digital
 import gnuradio.extras  # brings in gr.block
-import Queue
+#import Queue
 import time
 
 
@@ -51,7 +51,7 @@ class heart_beat(gr.block):
         @param key: String for key
         @param value: String for value
         """
-
+        # TODO: Problem here -> instance of heart_beat
         gr.block.__init__(
             self,
             name="simple_mac",

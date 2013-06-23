@@ -6,5 +6,6 @@ install (FILES
 	rayleigh_cc.py
 	cs_meas_cc.py
     const_cc.py
+    const_multi_cc.py
 	DESTINATION ${GR_PYTHON_DIR}/winelo/channel/models;
 )

@@ -7,3 +7,5 @@ from rayleigh_cc import rayleigh_cc
 from cs_meas_cc import cs_meas_cc
 # Constant channel model
 from const_cc import const_cc
+# Multi constant channel model
+from const_multi_cc import const_multi_cc

@@ -100,7 +100,7 @@ class sim_sink_cc(gr.basic_block):
         #print "Input:", input_items[0]
         dbg_late = False
         self.twisted_conn.condition.acquire()
-       # print "Sim_sink Work called"
+        #print "Sim_sink Work called"
         #print "DEBUG: len input:", len(input_items[0])
         #print "DEBUG: n_req_samples:", self.n_requested_samples
 
