@@ -63,7 +63,7 @@ class sim_source_cc(gr.block):
                                      #{'installSignalHandlers': 0})
             Thread(target=reactor.run, args=(False,)).start()
         else:
-            time.sleep(3)
+            time.sleep(2)
         print '[INFO] WiNeLo - giving twisted time to setup and block ' \
               'everything'
         time.sleep(3)

@@ -53,7 +53,7 @@ class sim_sink_cc(gr.basic_block):
         self.samp_rate = samp_rate
 
         self.no_input_counter = 0
-        self.max_no_input = 2
+        self.max_no_input = 4
         self.got_sob_eob = False
         #self.got_sob = False
         self.last_sob_offset = 0
@@ -86,7 +86,7 @@ class sim_sink_cc(gr.basic_block):
                                      #{'installSignalHandlers': 0})
             Thread(target=reactor.run, args=(False,)).start()
         else:
-            time.sleep(1)
+            time.sleep(2)
         print '[INFO] WiNeLo - giving twisted time to setup and block ' \
               'everything'
         time.sleep(1)
