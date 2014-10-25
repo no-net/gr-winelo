@@ -125,7 +125,7 @@ class rx(gr.hier_block2):
             gr.firdes.low_pass_2(1, self.sim_bw, self.app_samp_rate / 2,
                                  self.app_samp_rate / 10, 120,
                                  window=gr.firdes.WIN_BLACKMAN_hARRIS),
-            self.freq_shift, self.sim_bw)
+            -self.freq_shift, self.sim_bw)
 
         ##################################################
         # Connections
