@@ -22,7 +22,7 @@
 #include "config.h"
 #endif
 
-#include <gr_io_signature.h>
+#include <gnuradio/io_signature.h>
 #include <winelo_evm_cc.h>
 #include <volk/volk.h>
 
@@ -39,9 +39,9 @@ winelo_make_evm_cc (int vector_length)
 
 
 winelo_evm_cc::winelo_evm_cc (int vector_length)
-	: gr_sync_decimator ("evm_cc",
-			     gr_make_io_signature (2, 2, sizeof (gr_complex)),
-			     gr_make_io_signature (1, 1, sizeof (float)),
+	: gr::sync_decimator ("evm_cc",
+			     gr::io_signature::make (2, 2, sizeof (gr_complex)),
+			     gr::io_signature::make (1, 1, sizeof (float)),
 	       		     vector_length),
 	d_vector_length (vector_length)
 {

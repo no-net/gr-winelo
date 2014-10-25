@@ -22,7 +22,7 @@
 #define INCLUDED_WINELO_EVM_CC_H
 
 #include <winelo_api.h>
-#include <gr_sync_decimator.h>
+#include <gnuradio/sync_decimator.h>
 
 class winelo_evm_cc;
 typedef boost::shared_ptr<winelo_evm_cc> winelo_evm_cc_sptr;
@@ -32,7 +32,7 @@ WINELO_API winelo_evm_cc_sptr winelo_make_evm_cc (int vector_length);
 /*!
 Computes the error vector magntitude.
  */
-class WINELO_API winelo_evm_cc : public gr_sync_decimator
+class WINELO_API winelo_evm_cc : public gr::sync_decimator
 {
 	friend WINELO_API winelo_evm_cc_sptr winelo_make_evm_cc (int vector_length);
 

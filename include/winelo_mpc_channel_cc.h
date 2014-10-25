@@ -22,7 +22,7 @@
 #define INCLUDED_WINELO_MPC_CHANNEL_CC_H
 
 #include <winelo_api.h>
-#include <gr_sync_block.h>
+#include <gnuradio/sync_block.h>
 
 class winelo_mpc_channel_cc;
 typedef boost::shared_ptr<winelo_mpc_channel_cc> winelo_mpc_channel_cc_sptr;
@@ -34,7 +34,7 @@ WINELO_API winelo_mpc_channel_cc_sptr winelo_make_mpc_channel_cc (const std::vec
 All the other input streams are Gaussian random processes (GRP), where a GRP models the behaviour of all multipath components with an identical delay. The Taps Delays define the difference in delays between the GRP and the power delay profile sets the amplitude of each GRP.
 The taps delays are defined in samples and therefore have to be integer values.
  */
-class WINELO_API winelo_mpc_channel_cc : public gr_sync_block
+class WINELO_API winelo_mpc_channel_cc : public gr::sync_block
 {
 	friend WINELO_API winelo_mpc_channel_cc_sptr winelo_make_mpc_channel_cc (const std::vector<int> &taps_delays, const std::vector<float> &pdp);
 

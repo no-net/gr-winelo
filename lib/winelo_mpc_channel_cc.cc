@@ -22,7 +22,7 @@
 #include "config.h"
 #endif
 
-#include <gr_io_signature.h>
+#include <gnuradio/io_signature.h>
 #include <winelo_mpc_channel_cc.h>
 #include <volk/volk.h>
 #include <iostream>
@@ -36,9 +36,9 @@ winelo_make_mpc_channel_cc (const std::vector<int> &taps_delays, const std::vect
 
 
 winelo_mpc_channel_cc::winelo_mpc_channel_cc (const std::vector<int> &taps_delays, const std::vector<float> &pdp)
-	: gr_sync_block ("mpc_channel_cc",
-		gr_make_io_signature (2, 1+pdp.size(), sizeof (gr_complex)),
-		gr_make_io_signature (1, 1, sizeof (gr_complex))),
+	: gr::sync_block ("mpc_channel_cc",
+		gr::io_signature::make (2, 1+pdp.size(), sizeof (gr_complex)),
+		gr::io_signature::make (1, 1, sizeof (gr_complex))),
 	d_taps_delays (taps_delays),
 	d_pdp (pdp)
 {
@@ -96,12 +96,12 @@ winelo_mpc_channel_cc::work (int noutput_items,
 			gr_vector_const_void_star &input_items,
 			gr_vector_void_star &output_items)
 {
-  	gr_complex *out = (gr_complex *) output_items[0];
-  	gr_complex *in = (gr_complex *) input_items[0];
+    gr_complex *out = (gr_complex *) output_items[0];
+    gr_complex *in = (gr_complex *) input_items[0];
 	memset(out, 0, noutput_items*sizeof(gr_complex));
   	int noi = noutput_items;
   	
-	gr_complex *temp = (gr_complex*)fftwf_malloc(sizeof(gr_complex)*noutput_items);
+    gr_complex *temp = (gr_complex*)fftwf_malloc(sizeof(gr_complex)*noutput_items);
 
 	for(size_t i = 0; i < input_items.size()-1; i++)
 	{
