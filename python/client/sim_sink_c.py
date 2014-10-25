@@ -1,7 +1,7 @@
 import numpy
 #from grc_gnuradio import blks2 as grc_blks2
 from gnuradio import gr, uhd  # , blocks
-from gruel import pmt
+import pmt
 # import grextras for python blocks
 import gnuradio.extras
 
@@ -498,21 +498,21 @@ class sim_sink_cc(gr.basic_block):
 
     def evaluate_timestamps(self, nread, ninput_items):
         tags = self.get_tags_in_range(0, nread, nread + ninput_items,
-                                      pmt.pmt_string_to_symbol("tx_time"))
+                                      pmt.string_to_symbol("tx_time"))
         if tags:
-            full_secs = pmt.pmt_to_uint64(pmt.pmt_tuple_ref(tags[0].value, 0))
-            frac_secs = pmt.pmt_to_double(pmt.pmt_tuple_ref(tags[0].value, 1))
+            full_secs = pmt.to_uint64(pmt.tuple_ref(tags[0].value, 0))
+            frac_secs = pmt.to_double(pmt.tuple_ref(tags[0].value, 1))
             tx_item = full_secs * self.samp_rate + \
                 int(frac_secs / (1.0 / self.samp_rate))
             self.tags['tx_time'].append(tx_item)
 
         sob_tags = self.get_tags_in_range(0, nread, nread + ninput_items,
-                                          pmt.pmt_string_to_symbol("tx_sob"))
+                                          pmt.string_to_symbol("tx_sob"))
         if sob_tags:
             self.tags['tx_sob'].append(sob_tags[0].offset)
 
         eob_tags = self.get_tags_in_range(0, nread, nread + ninput_items,
-                                          pmt.pmt_string_to_symbol("tx_eob"))
+                                          pmt.string_to_symbol("tx_eob"))
         if eob_tags:
             self.tags['tx_eob'].append(eob_tags[0].offset)
 

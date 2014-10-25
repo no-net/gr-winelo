@@ -1,7 +1,7 @@
 import numpy
 #from grc_gnuradio import blks2 as grc_blks2
 from gnuradio import gr, uhd, blocks  # , analog
-from gruel import pmt
+import pmt
 # import grextras for python blocks
 import gnuradio.extras
 
@@ -230,12 +230,12 @@ class sim_source_cc(gr.block):
     def generate_rx_tags(self):
         #Produce tags
         offset = self.nitems_written(0) + 0
-        key_time = pmt.pmt_string_to_symbol("rx_time")
+        key_time = pmt.string_to_symbol("rx_time")
         #value_time = pmt.from_python(1.0 /
                                       #self.samp_rate * self.virtual_counter)
         value_time = pmt.from_python(self.get_time_now())
 
-        key_rate = pmt.pmt_string_to_symbol("rx_rate")
+        key_rate = pmt.string_to_symbol("rx_rate")
         value_rate = pmt.from_python(self.samp_rate)
 
         self.add_item_tag(0, offset, key_time, value_time)

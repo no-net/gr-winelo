@@ -23,7 +23,7 @@
 #from numpy import np
 #from math import pi
 from gnuradio import gr
-from gruel import pmt
+import pmt
 #from gnuradio.digital import packet_utils
 #import gnuradio.digital as gr_digital
 import gnuradio.extras  # brings in gr.block
@@ -61,9 +61,9 @@ class heart_beat(gr.block):
             num_msg_outputs=1,
         )
 
-        #self.mgr = pmt.pmt_mgr()
+        #self.mgr = pmt.mgr()
         #for i in range(64):
-        #    self.mgr.set(pmt.pmt_make_blob(10000))
+        #    self.mgr.set(pmt.make_blob(10000))
         self.period = period
         self.key = key
         self.value = value
@@ -77,12 +77,12 @@ class heart_beat(gr.block):
         while(1):
             #print "DEBUG: Heartbeat - new run, run no %s" % self.counter
             #blob = self.mgr.acquire(True) #block
-            #pmt.pmt_blob_resize(blob, len(self.value))
-            #pmt.pmt_blob_rw_data(blob)[:] = \
+            #pmt.blob_resize(blob, len(self.value))
+            #pmt.blob_rw_data(blob)[:] = \
                 #numpy.fromstring(self.value,dtype="uint8")
-            self.post_msg(0, pmt.pmt_string_to_symbol(self.key),
-                          pmt.pmt_string_to_symbol(self.value))  # blob)
-            #self.post_msg(0, pmt.pmt_string_to_symbol(self.key), blob)
+            self.post_msg(0, pmt.string_to_symbol(self.key),
+                          pmt.string_to_symbol(self.value))  # blob)
+            #self.post_msg(0, pmt.string_to_symbol(self.key), blob)
             time.sleep(self.period)
             #self.counter += 1
         #self.counter = 0
