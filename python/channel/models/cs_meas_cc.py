@@ -1,4 +1,4 @@
-from gnuradio import gr
+from gnuradio import gr, blocks, analog
 from winelo import mpc_channel_cc
 import pickle
 
@@ -52,10 +52,10 @@ class cs_meas_cc(gr.hier_block2):
 
         # loop through all delays
         for idx, delay in enumerate(self.taps_delays):
-            adder = gr.add_cc()
+            adder = blocks.add_cc()
             # loop through all cisoids of a delay
             for iidx, (freq, ampl) in enumerate(model[delay]):
-                src = gr.sig_source_c(sample_rate, gr.GR_COS_WAVE, freq, ampl)
+                src = analog.sig_source_c(sample_rate, gr.GR_COS_WAVE, freq, ampl)
                 self.connect(src, (adder, iidx))
             # print iidx
             self.connect(adder, (self.mpc_channel, idx + 1))

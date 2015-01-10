@@ -1,4 +1,4 @@
-from gnuradio import gr
+from gnuradio import gr, blocks, analog
 
 
 class awgn(gr.hier_block2):
@@ -25,9 +25,9 @@ class awgn(gr.hier_block2):
         ##################################################
         # Blocks
         ##################################################
-        self.gr_noise_source_x_0 = gr.noise_source_c(gr.GR_GAUSSIAN,
+        self.gr_noise_source_x_0 = analog.noise_source_c(gr.GR_GAUSSIAN,
                                                      noise_ampl, 42)
-        self.gr_add_xx_0 = gr.add_vcc(1)
+        self.gr_add_xx_0 = blocks.add_vcc(1)
 
         ##################################################
         # Connections

@@ -1,4 +1,4 @@
-from gnuradio import gr
+from gnuradio import gr, blocks
 import math
 
 
@@ -31,12 +31,12 @@ class iq_imbalance(gr.hier_block2):
         ##################################################
         # Blocks
         ##################################################
-        self.mag = gr.multiply_const_vff((math.pow(10, magnitude / 20.0), ))
-        self.gr_multiply_const_vxx_0 = gr.multiply_const_vff(
+        self.mag = blocks.multiply_const_vff((math.pow(10, magnitude / 20.0), ))
+        self.gr_multiply_const_vxx_0 = blocks.multiply_const_vff(
             (math.sin(phase * math.pi / 180.0), ))
-        self.gr_float_to_complex_0 = gr.float_to_complex(1)
-        self.gr_complex_to_float_0 = gr.complex_to_float(1)
-        self.gr_add_xx_0 = gr.add_vff(1)
+        self.gr_float_to_complex_0 = blocks.float_to_complex(1)
+        self.gr_complex_to_float_0 = blocks.complex_to_float(1)
+        self.gr_add_xx_0 = blocks.add_vff(1)
 
         ##################################################
         # Connections
