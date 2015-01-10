@@ -49,7 +49,7 @@ from heart_beat import heart_beat
 
 #
 # needed for python blocks
-import gnuradio.extras.block_gateway
+#import gnuradio.extras.block_gateway
 import server
 import client
 import channel

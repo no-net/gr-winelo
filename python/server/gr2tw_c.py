@@ -2,7 +2,7 @@ import numpy
 from gnuradio import gr
 #from grc_gnuradio import blks2 as grc_blks2
 # import grextras for python blocks
-import gnuradio.extras
+#import gnuradio.extras
 #from winelo.client.tcp_blocks import tcp_sink
 
 

@@ -2,7 +2,7 @@ import numpy
 
 #from gnuradio import blks2
 from gnuradio import gr
-import gnuradio.extras
+#import gnuradio.extras
 
 
 class mrc_vcc(gr.basic_block):

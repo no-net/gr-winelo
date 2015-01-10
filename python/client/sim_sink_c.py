@@ -3,7 +3,7 @@ import numpy
 from gnuradio import gr, uhd  # , blocks
 import pmt
 # import grextras for python blocks
-import gnuradio.extras
+#import gnuradio.extras
 
 from twisted.internet import reactor
 #import thread

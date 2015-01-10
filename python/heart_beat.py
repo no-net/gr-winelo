@@ -26,7 +26,7 @@ from gnuradio import gr
 import pmt
 #from gnuradio.digital import packet_utils
 #import gnuradio.digital as gr_digital
-import gnuradio.extras  # brings in gr.block
+#import gnuradio.extras  # brings in gr.block
 #import Queue
 import time
 
