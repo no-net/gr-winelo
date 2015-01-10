@@ -15,11 +15,11 @@ from winelo.client import SendFactory, uhd_gate
 #from winelo.client.tcp_blocks import tcp_source
 
 
-class sim_source_cc(gr.block):
+class sim_source_cc(gr.basic_block):
 
     def __init__(self, hier_blk, serverip, serverport, clientname,
                  packetsize, samp_rate, center_freq, net_id=0):
-        gr.block.__init__(
+        gr.basic_block.__init__(
             self,
             name="WiNeLo source",
             in_sig=[numpy.complex64],

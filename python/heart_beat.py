@@ -26,7 +26,7 @@ from gnuradio import gr
 import pmt
 #from gnuradio.digital import packet_utils
 #import gnuradio.digital as gr_digital
-#import gnuradio.extras  # brings in gr.block
+#import gnuradio.extras  # brings in gr.basic_block
 #import Queue
 import time
 
@@ -35,7 +35,7 @@ import time
 #               Heart Beat - period blob generation with param key and value
 # /////////////////////////////////////////////////////////////////////////////
 
-class heart_beat(gr.block):
+class heart_beat(gr.basic_block):
     """
     Generates blob at specified interval (w/ sleep)
 
@@ -52,7 +52,7 @@ class heart_beat(gr.block):
         @param value: String for value
         """
         # TODO: Problem here -> instance of heart_beat
-        gr.block.__init__(
+        gr.basic_block.__init__(
             self,
             name="simple_mac",
             in_sig=None,

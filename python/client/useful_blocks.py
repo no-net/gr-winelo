@@ -8,9 +8,9 @@ import numpy
 import time
 
 
-class count_samples_cc(gr.block):
+class count_samples_cc(gr.basic_block):
     def __init__(self):
-        gr.block.__init__(
+        gr.basic_block.__init__(
             self,
             name="count all samples",
             in_sig=[numpy.complex64],

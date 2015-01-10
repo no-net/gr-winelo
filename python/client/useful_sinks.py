@@ -8,9 +8,9 @@ import numpy
 import time
 
 
-class compare_2streams_sink_c(gr.block):
+class compare_2streams_sink_c(gr.basic_block):
     def __init__(self):
-        gr.block.__init__(
+        gr.basic_block.__init__(
             self,
             name="Print complex samples sink",
             in_sig=[numpy.complex64, numpy.complex64],

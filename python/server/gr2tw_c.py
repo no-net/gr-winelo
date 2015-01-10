@@ -6,12 +6,12 @@ from gnuradio import gr
 #from winelo.client.tcp_blocks import tcp_sink
 
 
-class gr2tw_cc(gr.block):
+class gr2tw_cc(gr.basic_block):
     """ Interface from GNU Radio to Twisted.
     """
 
     def __init__(self, twisted_conn, tcp_port):
-        gr.block.__init__(
+        gr.basic_block.__init__(
             self,
             name="winelo-gr2tw",
             in_sig=[numpy.complex64],

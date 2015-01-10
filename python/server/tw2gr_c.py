@@ -7,18 +7,18 @@ from gnuradio import gr  # , blocks
 #from winelo.client.tcp_blocks import tcp_source
 
 
-class tw2gr_cc(gr.block):
+class tw2gr_cc(gr.basic_block):
     """ Interface from Twisted to GNU Radio.
     """
 
     def __init__(self, twisted_conn):
-        gr.block.__init__(
+        gr.basic_block.__init__(
             self,
             name="winelo-tw2gr",
             in_sig=[numpy.complex64],
             out_sig=[numpy.complex64],
         )
-        # the connection between this gr block and the corresponding twisted
+        # the connection between this gr.basic_block and the corresponding twisted
         # conncetion
         self.twisted_conn = twisted_conn
         self.dbg_samp_count = 0
