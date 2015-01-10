@@ -1,6 +1,6 @@
 import numpy
 
-from gnuradio import gr  # , blocks
+from gnuradio import gr, blocks
 #from grc_gnuradio import blks2 as grc_blks2
 # import grextras for python blocks
 #import gnuradio.extras
@@ -80,7 +80,7 @@ class tw2gr_c(gr.hier_block2):
 #                                     addr=tcp_addr,
 #                                     port=tcp_port,
 #                                     server=True)
-        self.tcp_source = gr.udp_source(itemsize=gr.sizeof_gr_complex,
+        self.tcp_source = blocks.udp_source(itemsize=gr.sizeof_gr_complex,
                                         host=str(tcp_addr),
                                         port=tcp_port,
                                         payload_size=1472,

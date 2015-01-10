@@ -1,6 +1,6 @@
 import numpy
 #from grc_gnuradio import blks2 as grc_blks2
-from gnuradio import gr, uhd  # , blocks
+from gnuradio import gr, uhd, blocks
 import pmt
 # import grextras for python blocks
 #import gnuradio.extras
@@ -554,7 +554,7 @@ class sim_sink_c(gr.hier_block2, uhd_gate):
 #                                               addr=serverip,
 #                                               port=self.simsnk.get_dataport(),
 #                                               server=False)
-            self.tcp_sink = gr.udp_sink(itemsize=gr.sizeof_gr_complex,
+            self.tcp_sink = blocks.udp_sink(itemsize=gr.sizeof_gr_complex,
                                         host=str(serverip),
                                         port=self.simsnk.get_dataport(),
                                         payload_size=1472,

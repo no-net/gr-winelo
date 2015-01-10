@@ -1,4 +1,4 @@
-from gnuradio import gr
+from gnuradio import gr, blocks
 
 
 class none_cc(gr.hier_block2):
@@ -15,7 +15,7 @@ class none_cc(gr.hier_block2):
         ##################################################
         # Blocks
         ##################################################
-        self.multiply = gr.multiply_const_cc(1)
+        self.multiply = blocks.multiply_const_cc(1)
 
         ##################################################
         # Connections

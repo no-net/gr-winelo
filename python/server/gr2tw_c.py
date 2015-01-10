@@ -1,5 +1,5 @@
 import numpy
-from gnuradio import gr
+from gnuradio import gr, blocks
 #from grc_gnuradio import blks2 as grc_blks2
 # import grextras for python blocks
 #import gnuradio.extras
@@ -64,7 +64,7 @@ class gr2tw_c(gr.hier_block2):
 #                                 addr=tcp_addr,
 #                                 port=tcp_port,
 #                                 server=True)
-        self.tcp_sink = gr.udp_sink(itemsize=gr.sizeof_gr_complex,
+        self.tcp_sink = blocks.udp_sink(itemsize=gr.sizeof_gr_complex,
                                     host=tcp_addr,
                                     port=tcp_port,
                                     payload_size=1472,

@@ -1,4 +1,4 @@
-from gnuradio import gr  # , analog
+from gnuradio import gr, blocks
 #import time
 
 
@@ -53,7 +53,7 @@ class gr_channel():
 
         adders = []
         for i in range(len(rxs)):
-            adders.append(gr.add_cc())
+            adders.append(blocks.add_cc())
         print 'Adders:', adders
         # The two following for loops built a structure similar to this,
         # depending on the number of transmitters and receivers
