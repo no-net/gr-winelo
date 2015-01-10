@@ -26,9 +26,10 @@ class sim_sink_cc(gr.basic_block):
             name="WiNeLo sink",
             in_sig=[numpy.complex64],
             out_sig=[numpy.complex64],
-            num_msg_inputs=1,
-            num_msg_outputs=0,
+#           num_msg_inputs=1,
+#           num_msg_outputs=0,
         )
+        self.message_port_register_in(pmt.intern('msg_in'))
         print '[INFO] WiNeLo - Instantiating %s' % clientname
         self.hier_blk = hier_blk
         # counter that keeps track of the number of requested samples
@@ -559,9 +560,9 @@ class sim_sink_c(gr.hier_block2, uhd_gate):
                                         port=self.simsnk.get_dataport(),
                                         payload_size=1472,
                                         eof=False)
-            self.gain_blk = gr.multiply_const_vcc((1, ))
+            self.gain_blk = blocks.multiply_const_vcc((1, ))
             self.heartbeat = heart_beat(0.1, "", "")
-            self.connect(self.heartbeat, (self.simsnk, 1))
+            self.msg_connect(self.heartbeat, "msg_out", self.simsnk, "msg_in")
             #self.connect(self, (simsnk, 0), self.tcp_sink)
             self.connect(self, self.gain_blk, (self.simsnk, 0))
             self.connect((self.simsnk, 0), self.tcp_sink)

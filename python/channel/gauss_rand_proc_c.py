@@ -1,4 +1,4 @@
-from gnuradio import gr
+from gnuradio import gr, blocks, analog
 from numpy.random import randint
 
 
@@ -67,12 +67,12 @@ class gauss_rand_proc_c(gr.hier_block2):
             from winelo.channel import spec2soc
             soc = spec2soc(spec_getter(), method=self.method, N=self.N)
             sources = []
-            adder = gr.add_cc()
+            adder = blocks.add_cc()
             for idx, (freq, ampl) in enumerate(soc.get_soc()):
-                sources.append(gr.sig_source_c(self.sample_rate,
-                                               gr.GR_COS_WAVE, freq, ampl))
+                sources.append(analog.sig_source_c(self.sample_rate,
+                                               analog.GR_COS_WAVE, freq, ampl))
                 self.connect(sources[idx],
-                             gr.skiphead(gr.sizeof_gr_complex,
+                             blocks.skiphead(gr.sizeof_gr_complex,
                                          randint(low=0, high=self.sample_rate)),
                              (adder, idx))
             return adder
@@ -81,29 +81,29 @@ class gauss_rand_proc_c(gr.hier_block2):
             # real part of the gaussian random process
             sos_real = spec2sos(spec_getter(), method=self.method, N=self.N)
             sources_real = []
-            adder_real = gr.add_ff()
+            adder_real = blocks.add_ff()
             for idx, (freq, ampl) in enumerate(sos_real.get_sos()):
-                sources_real.append(gr.sig_source_f(self.sample_rate,
-                                                    gr.GR_COS_WAVE, freq,
+                sources_real.append(analog.sig_source_f(self.sample_rate,
+                                                    analog.GR_COS_WAVE, freq,
                                                     ampl))
                 self.connect(sources_real[idx],
-                             gr.skiphead(gr.sizeof_float,
+                             blocks.skiphead(gr.sizeof_float,
                                          randint(low=0, high=self.sample_rate)),
                              (adder_real, idx))
             # imaginary part of the gaussian random process
             sos_imaginary = spec2sos(spec_getter(), method=self.method,
                                      N=self.N + 1)
             sources_imag = []
-            adder_imag = gr.add_ff()
+            adder_imag = blocks.add_ff()
             for idx, (freq, ampl) in enumerate(sos_imaginary.get_sos()):
-                sources_imag.append(gr.sig_source_f(self.sample_rate,
-                                                    gr.GR_COS_WAVE, freq,
+                sources_imag.append(analog.sig_source_f(self.sample_rate,
+                                                    analog.GR_COS_WAVE, freq,
                                                     ampl))
                 self.connect(sources_imag[idx],
-                             gr.skiphead(gr.sizeof_float,
+                             blocks.skiphead(gr.sizeof_float,
                                          randint(low=0, high=self.sample_rate)),
                              (adder_imag, idx))
-            float2complex = gr.float_to_complex()
+            float2complex = blocks.float_to_complex()
             self.connect(adder_real, (float2complex, 0))
             self.connect(adder_imag, (float2complex, 1))
             return float2complex

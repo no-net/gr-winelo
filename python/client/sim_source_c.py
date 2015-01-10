@@ -15,11 +15,11 @@ from winelo.client import SendFactory, uhd_gate
 #from winelo.client.tcp_blocks import tcp_source
 
 
-class sim_source_cc(gr.basic_block):
+class sim_source_cc(gr.sync_block):
 
     def __init__(self, hier_blk, serverip, serverport, clientname,
                  packetsize, samp_rate, center_freq, net_id=0):
-        gr.basic_block.__init__(
+        gr.sync_block.__init__(
             self,
             name="WiNeLo source",
             in_sig=[numpy.complex64],
@@ -233,10 +233,10 @@ class sim_source_cc(gr.basic_block):
         key_time = pmt.string_to_symbol("rx_time")
         #value_time = pmt.from_python(1.0 /
                                       #self.samp_rate * self.virtual_counter)
-        value_time = pmt.from_python(self.get_time_now())
+        value_time = pmt.to_pmt(self.get_time_now())
 
         key_rate = pmt.string_to_symbol("rx_rate")
-        value_rate = pmt.from_python(self.samp_rate)
+        value_rate = pmt.to_pmt(self.samp_rate)
 
         self.add_item_tag(0, offset, key_time, value_time)
         self.add_item_tag(0, offset, key_rate, value_rate)

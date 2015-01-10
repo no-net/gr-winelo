@@ -5,9 +5,9 @@ from gnuradio import gr
 #import gnuradio.extras
 
 
-class mrc_vcc(gr.basic_block):
+class mrc_vcc(gr.sync_block):
     def __init__(self, pilot_seq_len, channel_coherence_len, num_inputs):
-        gr.basic_block.__init__(
+        gr.sync_block.__init__(
             self,
             name="Maximum Ratio Combining",
             in_sig=num_inputs * [(numpy.complex64, channel_coherence_len)],

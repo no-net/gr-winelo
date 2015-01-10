@@ -26,7 +26,7 @@ from gnuradio import gr
 import pmt
 #from gnuradio.digital import packet_utils
 #import gnuradio.digital as gr_digital
-#import gnuradio.extras  # brings in gr.basic_block
+#import gnuradio.extras  # brings in gr.sync_block
 #import Queue
 import time
 
@@ -35,7 +35,7 @@ import time
 #               Heart Beat - period blob generation with param key and value
 # /////////////////////////////////////////////////////////////////////////////
 
-class heart_beat(gr.basic_block):
+class heart_beat(gr.sync_block):
     """
     Generates blob at specified interval (w/ sleep)
 
@@ -52,18 +52,19 @@ class heart_beat(gr.basic_block):
         @param value: String for value
         """
         # TODO: Problem here -> instance of heart_beat
-        gr.basic_block.__init__(
+        gr.sync_block.__init__(
             self,
             name="simple_mac",
             in_sig=None,
             out_sig=None,
-            has_msg_input=False,
-            num_msg_outputs=1,
+#            has_msg_input=False,
+#            num_msg_outputs=1,
         )
 
         #self.mgr = pmt.mgr()
         #for i in range(64):
         #    self.mgr.set(pmt.make_blob(10000))
+        self.message_port_register_out(pmt.intern('msg_out'))
         self.period = period
         self.key = key
         self.value = value
@@ -82,6 +83,7 @@ class heart_beat(gr.basic_block):
                 #numpy.fromstring(self.value,dtype="uint8")
             self.post_msg(0, pmt.string_to_symbol(self.key),
                           pmt.string_to_symbol(self.value))  # blob)
+            self.message_port_pub(pmt.intern("msg_out"), pmt.string_to_symbol(self.value))
             #self.post_msg(0, pmt.string_to_symbol(self.key), blob)
             time.sleep(self.period)
             #self.counter += 1
