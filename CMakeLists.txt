@@ -68,7 +68,7 @@ endif()
 include(GrPlatform) #define LIB_SUFFIX
 set(GR_RUNTIME_DIR      bin)
 set(GR_LIBRARY_DIR      lib${LIB_SUFFIX})
-set(GR_INCLUDE_DIR      include)
+set(GR_INCLUDE_DIR      include/winelo)
 set(GR_DATA_DIR         share)
 set(GR_PKG_DATA_DIR     ${GR_DATA_DIR}/${CMAKE_PROJECT_NAME})
 set(GR_DOC_DIR          ${GR_DATA_DIR}/doc)
@@ -83,6 +83,9 @@ set(GRC_BLOCKS_DIR      ${GR_PKG_DATA_DIR}/grc/blocks)
 # Find gnuradio build dependencies
 ########################################################################
 find_package(GnuradioRuntime)
+find_package(FFTW3f)
+set(GR_REQUIRED_COMPONENTS RUNTIME)
+find_package(Gnuradio "3.7.2" REQUIRED)
 
 if(NOT GNURADIO_RUNTIME_FOUND)
     message(FATAL_ERROR "GnuRadio Core required to compile winelo")
@@ -94,12 +97,14 @@ endif()
 include_directories(
     ${CMAKE_SOURCE_DIR}/include
     ${Boost_INCLUDE_DIRS}
-    ${GNURADIO_RUNTIME_INCLUDE_DIRS}
+    ${GNURADIO_ALL_INCLUDE_DIRS}
+    ${FFTW3F_INCLUDE_DIRS}
 )
 
 link_directories(
     ${Boost_LIBRARY_DIRS}
     ${GNURADIO_RUNTIME_LIBRARY_DIRS}
+    ${FFTW3F_LIBRARY_DIRS}
 )
 
 # Set component parameters
@@ -121,7 +126,7 @@ add_custom_target(uninstall
 ########################################################################
 # Add subdirectories
 ########################################################################
-add_subdirectory(include)
+add_subdirectory(include/winelo)
 add_subdirectory(lib)
 add_subdirectory(swig)
 add_subdirectory(python)

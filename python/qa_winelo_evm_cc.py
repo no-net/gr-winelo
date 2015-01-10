@@ -19,7 +19,7 @@
 #
 #
 
-from gnuradio import gr, gr_unittest
+from gnuradio import gr, gr_unittest, blocks
 import winelo_swig
 
 
@@ -35,10 +35,10 @@ class qa_evm_cc (gr_unittest.TestCase):
         src_data0 = (1, 2, 3, 1, 1) + (2, 2, 2, 2, 2)
         src_data1 = (1, 1, 2, 4, 0) + (0, 0, 0, 0, 0)
         expected_result = (12. / 5, 4)
-        src0 = gr.vector_source_c(src_data0)
-        src1 = gr.vector_source_c(src_data1)
+        src0 = blocks.vector_source_c(src_data0)
+        src1 = blocks.vector_source_c(src_data1)
         evm = winelo_swig.evm_cc(vector_length=5)
-        sink = gr.vector_sink_f()
+        sink = blocks.vector_sink_f()
         # set up fg
         self.tb.connect(src0, (evm, 0))
         self.tb.connect(src1, (evm, 1))
